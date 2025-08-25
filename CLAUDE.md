@@ -73,8 +73,9 @@ src/
 ## Development Phases Status
 
 - ✅ **Phase 1.1**: Project initialization with Next.js 15, Tailwind CSS v3.4, shadcn/ui, Biome
-- 🔄 **Phase 1.2**: Database setup (Neon + Prisma) and Better Auth - **NEXT**  
-- ⏳ **Phase 2**: Document upload with Vercel Blob and PDF viewing
+- ✅ **Phase 1.2**: Database setup (Neon + Prisma) and Better Auth
+- ✅ **Phase 2.1**: File upload system with Vercel Blob storage - **NEXT**  
+- ⏳ **Phase 2.2**: PDF viewing with react-pdf
 - ⏳ **Phase 3**: Signature placement interface
 - ⏳ **Phase 4**: Email integration with Resend
 - ⏳ **Phase 5**: Signature capture workflow

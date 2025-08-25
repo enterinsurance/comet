@@ -1,7 +1,7 @@
 "use client"
 
-import * as React from "react"
 import { FileText, Home, Settings2, SquareArrowUpRight, Users } from "lucide-react"
+import type * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -45,7 +45,6 @@ const data = {
         {
           title: "Upload Document",
           url: "/dashboard/documents/upload",
-          badge: "Phase 2",
         },
       ],
     },

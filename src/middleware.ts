@@ -19,9 +19,10 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
 
   // Check for session cookie (Better Auth uses a session token cookie)
-  const sessionCookie = request.cookies.get("comet-auth.session_token") || 
-                        request.cookies.get("better-auth.session_token") ||
-                        request.cookies.get("session_token")
+  const sessionCookie =
+    request.cookies.get("comet-auth.session_token") ||
+    request.cookies.get("better-auth.session_token") ||
+    request.cookies.get("session_token")
   const hasSession = !!sessionCookie?.value
 
   // If accessing protected route without session, redirect to login

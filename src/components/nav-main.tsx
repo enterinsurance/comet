@@ -3,11 +3,7 @@
 import { ChevronRight, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -41,7 +37,7 @@ export function NavMain({
       <SidebarMenu>
         {items.map((item) => {
           const hasItems = item.items && item.items.length > 0
-          
+
           if (!hasItems) {
             return (
               <SidebarMenuItem key={item.title}>
@@ -59,7 +55,7 @@ export function NavMain({
               </SidebarMenuItem>
             )
           }
-          
+
           return (
             <Collapsible
               key={item.title}

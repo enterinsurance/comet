@@ -1,19 +1,9 @@
 "use client"
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  LogOut,
-  Settings,
-} from "lucide-react"
+import { BadgeCheck, Bell, ChevronsUpDown, LogOut, Settings } from "lucide-react"
 import { useRouter } from "next/navigation"
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,

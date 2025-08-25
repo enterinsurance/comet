@@ -1,22 +1,18 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function RecipientsPage() {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Recipients</h1>
-        <p className="text-muted-foreground">
-          Manage signing recipients and invitations
-        </p>
+        <p className="text-muted-foreground">Manage signing recipients and invitations</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Coming Soon</CardTitle>
-          <CardDescription>
-            Recipient management will be available in Phase 4
-          </CardDescription>
+          <CardDescription>Recipient management will be available in Phase 4</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">

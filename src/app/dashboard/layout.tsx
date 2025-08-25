@@ -1,11 +1,11 @@
 "use client"
 
-import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
-import { Separator } from "@/components/ui/separator"
-import { useSession } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { AppSidebar } from "@/components/app-sidebar"
+import { Separator } from "@/components/ui/separator"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { useSession } from "@/lib/auth-client"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession()
@@ -32,7 +32,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const user = {
     name: session.user.name || "User",
     email: session.user.email,
-    avatar: session.user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(session.user.name || session.user.email)}&background=0f172a&color=fff`,
+    avatar:
+      session.user.image ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(session.user.name || session.user.email)}&background=0f172a&color=fff`,
   }
 
   return (
@@ -45,9 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Separator orientation="vertical" className="mr-2 h-4" />
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {children}
-        </div>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )
