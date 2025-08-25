@@ -1,6 +1,6 @@
 "use client"
 
-import { FileText, Home, Settings2, SquareArrowUpRight, Users } from "lucide-react"
+import { FileText, Home, SquareArrowUpRight, Users } from "lucide-react"
 import type * as React from "react"
 
 import { NavMain } from "@/components/nav-main"
@@ -60,22 +60,6 @@ const data = {
         {
           title: "Signing Requests",
           url: "/dashboard/recipients/requests",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "/dashboard/settings",
-      icon: Settings2,
-      badge: "Phase 7",
-      items: [
-        {
-          title: "Account",
-          url: "/dashboard/settings/account",
-        },
-        {
-          title: "Security",
-          url: "/dashboard/settings/security",
         },
       ],
     },
