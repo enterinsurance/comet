@@ -186,7 +186,7 @@ export function DocumentEditor({
                 <span className="text-muted-foreground">Signature field</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-dashed border-blue-500 bg-blue-200/30"></div>
+                <div className="w-4 h-4 border-2 border-dashed border-green-500 bg-green-200/30"></div>
                 <span className="text-muted-foreground">Selected field</span>
               </div>
               <div className="text-muted-foreground">

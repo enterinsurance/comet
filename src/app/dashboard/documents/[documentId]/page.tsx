@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { DocumentEditor } from "@/components/document-editor"
+import { DocumentPreparation } from "@/components/document-preparation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -76,6 +76,12 @@ export default function DocumentViewPage() {
   const [document, setDocument] = useState<Document | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  const handleStatusChange = (newStatus: string) => {
+    if (document) {
+      setDocument({ ...document, status: newStatus })
+    }
+  }
 
   useEffect(() => {
     const fetchDocument = async () => {
@@ -333,19 +339,30 @@ export default function DocumentViewPage() {
               <CardDescription>What you can do with this document</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-start"
-                onClick={() => {
-                  // The DocumentEditor component will handle this
-                  const editorContainer = window.document.getElementById('document-editor')
-                  editorContainer?.scrollIntoView({ behavior: 'smooth' })
-                }}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Add Signature Fields
-              </Button>
+              {document.status === "DRAFT" && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const editorContainer = window.document.getElementById('document-editor')
+                    editorContainer?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Prepare Document
+                </Button>
+              )}
+              
+              {document.status === "SENT" && (
+                <div className="text-sm text-green-600 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="font-medium">Document Ready</div>
+                  <div className="text-xs text-green-700 mt-1">
+                    This document is prepared and ready for signing
+                  </div>
+                </div>
+              )}
+              
               <Button variant="outline" size="sm" className="w-full justify-start" disabled>
                 <User className="h-4 w-4 mr-2" />
                 Send for Signing
@@ -353,6 +370,7 @@ export default function DocumentViewPage() {
                   Phase 4
                 </Badge>
               </Button>
+              
               <Button variant="outline" size="sm" className="w-full justify-start">
                 <Share2 className="h-4 w-4 mr-2" />
                 Share Document
@@ -364,10 +382,13 @@ export default function DocumentViewPage() {
         {/* PDF Viewer */}
         <div className="lg:col-span-3">
           <div id="document-editor">
-            <DocumentEditor
+            <DocumentPreparation
               documentId={documentId}
+              documentTitle={document.title}
               fileUrl={document.filePath}
               fileName={document.fileName}
+              currentStatus={document.status}
+              onStatusChange={handleStatusChange}
             />
           </div>
         </div>

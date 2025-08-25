@@ -414,10 +414,10 @@ export function PDFViewer({
                       return (
                         <div
                           key={field.id}
-                          className={`absolute border-2 border-dashed bg-blue-100/20 ${
+                          className={`absolute border-2 border-dashed ${
                             selectedField === field.id 
-                              ? 'border-blue-500 bg-blue-200/30' 
-                              : 'border-blue-400 hover:border-blue-500'
+                              ? 'border-green-500 bg-green-200/30' 
+                              : 'border-blue-400 bg-blue-100/20 hover:border-blue-500'
                           }`}
                           style={{
                             left: `${left}px`,
