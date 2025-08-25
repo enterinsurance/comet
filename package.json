@@ -6,12 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "postinstall": "prisma migrate deploy && prisma generate",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format .",
     "format:write": "biome format --write .",
-    "type-check": "tsc --noEmit",
-    "vercel-build": "npx prisma migrate deploy && prisma generate"
+    "type-check": "tsc --noEmit"
   },
   "keywords": [
     "document-signing",
