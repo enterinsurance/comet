@@ -1,19 +1,19 @@
 "use client"
 
-import { 
-  Calendar, 
-  CheckCircle, 
-  Clock, 
-  Copy, 
-  Eye, 
-  Mail, 
-  MoreHorizontal, 
-  RefreshCw, 
-  Send, 
-  Trash2, 
-  User, 
+import {
+  Calendar,
+  CheckCircle,
+  Clock,
+  Copy,
+  Eye,
+  Mail,
+  MoreHorizontal,
+  RefreshCw,
+  Send,
+  Trash2,
+  User,
   X,
-  XCircle 
+  XCircle,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -68,10 +68,10 @@ interface InvitationTrackerProps {
   onRefresh?: () => void
 }
 
-export function InvitationTracker({ 
-  documentId, 
-  documentTitle, 
-  onRefresh 
+export function InvitationTracker({
+  documentId,
+  documentTitle,
+  onRefresh,
 }: InvitationTrackerProps) {
   const [signingRequests, setSigningRequests] = useState<SigningRequest[]>([])
   const [summary, setSummary] = useState<InvitationSummary>({
@@ -95,7 +95,7 @@ export function InvitationTracker({
       }
 
       const response = await fetch(`/api/documents/${documentId}/signing-requests`)
-      
+
       if (!response.ok) {
         throw new Error("Failed to load signing requests")
       }
@@ -153,7 +153,7 @@ export function InvitationTracker({
     if (isExpired && status !== "SIGNED") {
       return <XCircle className="h-4 w-4 text-red-500" />
     }
-    
+
     switch (status) {
       case "PENDING":
         return <Clock className="h-4 w-4 text-yellow-500" />
@@ -177,9 +177,17 @@ export function InvitationTracker({
       case "PENDING":
         return <Badge variant="secondary">Pending</Badge>
       case "VIEWED":
-        return <Badge variant="outline" className="border-blue-500 text-blue-700">Viewed</Badge>
+        return (
+          <Badge variant="outline" className="border-blue-500 text-blue-700">
+            Viewed
+          </Badge>
+        )
       case "SIGNED":
-        return <Badge variant="default" className="bg-green-600">Signed</Badge>
+        return (
+          <Badge variant="default" className="bg-green-600">
+            Signed
+          </Badge>
+        )
       case "DECLINED":
         return <Badge variant="destructive">Declined</Badge>
       default:
@@ -219,16 +227,9 @@ export function InvitationTracker({
                 <Mail className="h-5 w-5" />
                 <span>Invitation Status</span>
               </CardTitle>
-              <CardDescription>
-                Track signing invitations for "{documentTitle}"
-              </CardDescription>
+              <CardDescription>Track signing invitations for "{documentTitle}"</CardDescription>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleRefresh} 
-              disabled={isRefreshing}
-            >
+            <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
               <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
               Refresh
             </Button>
@@ -262,7 +263,9 @@ export function InvitationTracker({
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
               <Clock className="h-4 w-4 text-yellow-600" />
-              <div className="text-2xl font-bold text-yellow-600">{summary.pending + summary.viewed}</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {summary.pending + summary.viewed}
+              </div>
               <div className="text-sm text-muted-foreground">Pending</div>
             </div>
           </CardContent>
@@ -272,7 +275,9 @@ export function InvitationTracker({
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
               <XCircle className="h-4 w-4 text-red-600" />
-              <div className="text-2xl font-bold text-red-600">{summary.expired + summary.declined}</div>
+              <div className="text-2xl font-bold text-red-600">
+                {summary.expired + summary.declined}
+              </div>
               <div className="text-sm text-muted-foreground">Failed</div>
             </div>
           </CardContent>
@@ -283,9 +288,7 @@ export function InvitationTracker({
       {signingRequests.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
-              Invitations ({signingRequests.length})
-            </CardTitle>
+            <CardTitle className="text-lg">Invitations ({signingRequests.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -298,30 +301,26 @@ export function InvitationTracker({
                     <div className="flex items-center justify-center w-10 h-10 bg-blue-100 text-blue-800 rounded-full">
                       <User className="h-5 w-5" />
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium">
-                        {request.name || request.email}
-                      </div>
+                      <div className="font-medium">{request.name || request.email}</div>
                       {request.name && (
-                        <div className="text-sm text-muted-foreground">
-                          {request.email}
-                        </div>
+                        <div className="text-sm text-muted-foreground">{request.email}</div>
                       )}
-                      
+
                       <div className="flex items-center space-x-4 mt-1 text-xs text-muted-foreground">
                         <div className="flex items-center space-x-1">
                           <Calendar className="h-3 w-3" />
                           <span>Sent {formatDate(request.createdAt)}</span>
                         </div>
-                        
+
                         {request.lastSignedAt && (
                           <div className="flex items-center space-x-1">
                             <CheckCircle className="h-3 w-3" />
                             <span>Signed {formatDate(request.lastSignedAt)}</span>
                           </div>
                         )}
-                        
+
                         <div className="flex items-center space-x-1">
                           <Clock className="h-3 w-3" />
                           <span>Expires {formatDate(request.expiresAt)}</span>
@@ -338,7 +337,7 @@ export function InvitationTracker({
 
                     {request.signatureCount > 0 && (
                       <Badge variant="outline" className="text-xs">
-                        {request.signatureCount} signature{request.signatureCount !== 1 ? 's' : ''}
+                        {request.signatureCount} signature{request.signatureCount !== 1 ? "s" : ""}
                       </Badge>
                     )}
 
@@ -355,7 +354,7 @@ export function InvitationTracker({
                           <Copy className="h-4 w-4 mr-2" />
                           Copy Signing URL
                         </DropdownMenuItem>
-                        
+
                         {request.status !== "SIGNED" && (
                           <>
                             <DropdownMenuSeparator />

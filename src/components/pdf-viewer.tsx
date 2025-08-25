@@ -20,13 +20,12 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { SignatureField } from "@/types"
+import type { SignatureField } from "@/types"
 import "react-pdf/dist/Page/AnnotationLayer.css"
 import "react-pdf/dist/Page/TextLayer.css"
 
 // Set up PDF.js worker to use local file
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs"
-
 
 interface PDFViewerProps {
   fileUrl: string
@@ -37,13 +36,13 @@ interface PDFViewerProps {
   onSignatureFieldsChange?: (fields: SignatureField[]) => void
 }
 
-export function PDFViewer({ 
-  fileUrl, 
-  fileName, 
-  className, 
+export function PDFViewer({
+  fileUrl,
+  fileName,
+  className,
   editMode = false,
   signatureFields = [],
-  onSignatureFieldsChange 
+  onSignatureFieldsChange,
 }: PDFViewerProps) {
   const [numPages, setNumPages] = useState<number | null>(null)
   const [pageNumber, setPageNumber] = useState(1)
@@ -56,7 +55,8 @@ export function PDFViewer({
   const [selectedField, setSelectedField] = useState<string | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const pageRef = useRef<HTMLDivElement>(null)
-  const [localSignatureFields, setLocalSignatureFields] = useState<SignatureField[]>(signatureFields)
+  const [localSignatureFields, setLocalSignatureFields] =
+    useState<SignatureField[]>(signatureFields)
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages)
@@ -73,30 +73,36 @@ export function PDFViewer({
   const generateId = () => `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
   // Convert screen coordinates to PDF coordinates
-  const screenToPdfCoordinates = useCallback((screenX: number, screenY: number) => {
-    if (!pageRef.current) return { x: 0, y: 0 }
-    
-    const pageRect = pageRef.current.getBoundingClientRect()
-    const relativeX = screenX - pageRect.left
-    const relativeY = screenY - pageRect.top
-    
-    // Convert to PDF coordinates (0-1 range)
-    const x = relativeX / pageRect.width
-    const y = relativeY / pageRect.height
-    
-    return { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) }
-  }, [scale])
+  const screenToPdfCoordinates = useCallback(
+    (screenX: number, screenY: number) => {
+      if (!pageRef.current) return { x: 0, y: 0 }
+
+      const pageRect = pageRef.current.getBoundingClientRect()
+      const relativeX = screenX - pageRect.left
+      const relativeY = screenY - pageRect.top
+
+      // Convert to PDF coordinates (0-1 range)
+      const x = relativeX / pageRect.width
+      const y = relativeY / pageRect.height
+
+      return { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) }
+    },
+    [scale]
+  )
 
   // Convert PDF coordinates to screen coordinates
-  const pdfToScreenCoordinates = useCallback((pdfX: number, pdfY: number) => {
-    if (!pageRef.current) return { x: 0, y: 0 }
-    
-    const pageRect = pageRef.current.getBoundingClientRect()
-    const x = pdfX * pageRect.width
-    const y = pdfY * pageRect.height
-    
-    return { x, y }
-  }, [scale])
+  const pdfToScreenCoordinates = useCallback(
+    (pdfX: number, pdfY: number) => {
+      if (!pageRef.current) return { x: 0, y: 0 }
+
+      const pageRect = pageRef.current.getBoundingClientRect()
+      const x = pdfX * pageRect.width
+      const y = pdfY * pageRect.height
+
+      return { x, y }
+    },
+    [scale]
+  )
 
   const onDocumentLoadError = (error: Error) => {
     console.error("PDF load error:", error)
@@ -148,16 +154,19 @@ export function PDFViewer({
   // Handle mouse events for signature field placement
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!editMode || e.button !== 0) return
-    
+
     const { x, y } = screenToPdfCoordinates(e.clientX, e.clientY)
-    
+
     // Check if clicking on existing field
-    const clickedField = localSignatureFields.find(field => 
-      field.page === pageNumber &&
-      x >= field.x && x <= field.x + field.width &&
-      y >= field.y && y <= field.y + field.height
+    const clickedField = localSignatureFields.find(
+      (field) =>
+        field.page === pageNumber &&
+        x >= field.x &&
+        x <= field.x + field.width &&
+        y >= field.y &&
+        y <= field.y + field.height
     )
-    
+
     if (clickedField) {
       setSelectedField(clickedField.id)
       setDragStart({ x: e.clientX, y: e.clientY })
@@ -168,61 +177,65 @@ export function PDFViewer({
       setDragStart({ x: e.clientX, y: e.clientY })
       setIsDragging(true)
     }
-    
+
     e.preventDefault()
   }
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!editMode || !isDragging || !dragStart) return
-    
+
     const currentX = e.clientX
     const currentY = e.clientY
-    
+
     if (selectedField) {
       // Move existing field
-      const deltaX = (currentX - dragStart.x) / (pageRef.current?.getBoundingClientRect().width || 1)
-      const deltaY = (currentY - dragStart.y) / (pageRef.current?.getBoundingClientRect().height || 1)
-      
-      setLocalSignatureFields(prev => prev.map(field => 
-        field.id === selectedField
-          ? {
-              ...field,
-              x: Math.max(0, Math.min(1 - field.width, field.x + deltaX)),
-              y: Math.max(0, Math.min(1 - field.height, field.y + deltaY))
-            }
-          : field
-      ))
-      
+      const deltaX =
+        (currentX - dragStart.x) / (pageRef.current?.getBoundingClientRect().width || 1)
+      const deltaY =
+        (currentY - dragStart.y) / (pageRef.current?.getBoundingClientRect().height || 1)
+
+      setLocalSignatureFields((prev) =>
+        prev.map((field) =>
+          field.id === selectedField
+            ? {
+                ...field,
+                x: Math.max(0, Math.min(1 - field.width, field.x + deltaX)),
+                y: Math.max(0, Math.min(1 - field.height, field.y + deltaY)),
+              }
+            : field
+        )
+      )
+
       setDragStart({ x: currentX, y: currentY })
     }
   }
 
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!editMode || !isDragging || !dragStart) return
-    
+
     if (!selectedField) {
       // Create new signature field
       const start = screenToPdfCoordinates(dragStart.x, dragStart.y)
       const end = screenToPdfCoordinates(e.clientX, e.clientY)
-      
+
       const x = Math.min(start.x, end.x)
       const y = Math.min(start.y, end.y)
       const width = Math.abs(end.x - start.x)
       const height = Math.abs(end.y - start.y)
-      
+
       // Only create field if it has minimum size
       if (width > 0.02 && height > 0.01) {
         const newField: SignatureField = {
           id: generateId(),
-          documentId: '', // Will be set when saved
+          documentId: "", // Will be set when saved
           x,
           y,
           width,
           height,
           page: pageNumber,
-          required: true
+          required: true,
         }
-        
+
         const updatedFields = [...localSignatureFields, newField]
         setLocalSignatureFields(updatedFields)
         onSignatureFieldsChange?.(updatedFields)
@@ -232,14 +245,14 @@ export function PDFViewer({
       // Finished moving field
       onSignatureFieldsChange?.(localSignatureFields)
     }
-    
+
     setIsDragging(false)
     setDragStart(null)
   }
 
   // Delete selected signature field
   const deleteSignatureField = (fieldId: string) => {
-    const updatedFields = localSignatureFields.filter(field => field.id !== fieldId)
+    const updatedFields = localSignatureFields.filter((field) => field.id !== fieldId)
     setLocalSignatureFields(updatedFields)
     onSignatureFieldsChange?.(updatedFields)
     setSelectedField(null)
@@ -314,7 +327,7 @@ export function PDFViewer({
                 <Download className="h-4 w-4" />
               </Button>
             </div>
-            
+
             {/* Edit Mode Controls */}
             {editMode && (
               <div className="flex items-center space-x-2 border-l pl-2 ml-2">
@@ -322,7 +335,7 @@ export function PDFViewer({
                   <Edit3 className="h-4 w-4" />
                   <span>Edit Mode</span>
                 </div>
-                
+
                 {selectedField && (
                   <Button
                     variant="outline"
@@ -334,9 +347,9 @@ export function PDFViewer({
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 )}
-                
+
                 <div className="text-sm text-muted-foreground">
-                  Fields: {localSignatureFields.filter(f => f.page === pageNumber).length}
+                  Fields: {localSignatureFields.filter((f) => f.page === pageNumber).length}
                 </div>
               </div>
             )}
@@ -349,11 +362,12 @@ export function PDFViewer({
         <div className="mb-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <div className="text-sm text-blue-800">
             <MousePointer className="h-4 w-4 inline mr-1" />
-            <strong>Edit Mode:</strong> Click and drag to create signature fields. Click existing fields to select and move them.
+            <strong>Edit Mode:</strong> Click and drag to create signature fields. Click existing
+            fields to select and move them.
           </div>
         </div>
       )}
-      
+
       {/* PDF Document */}
       <div className="flex-1 overflow-auto">
         <div className="flex justify-center p-4">
@@ -382,13 +396,13 @@ export function PDFViewer({
                 loading=""
                 error=""
               >
-                <div 
+                <div
                   ref={pageRef}
                   className="relative"
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
-                  style={{ cursor: editMode ? (isDragging ? 'grabbing' : 'crosshair') : 'default' }}
+                  style={{ cursor: editMode ? (isDragging ? "grabbing" : "crosshair") : "default" }}
                 >
                   <Page
                     pageNumber={pageNumber}
@@ -398,61 +412,61 @@ export function PDFViewer({
                     renderAnnotationLayer={true}
                     className="border"
                   />
-                  
+
                   {/* Signature Field Overlay */}
-                  {editMode && localSignatureFields
-                    .filter(field => field.page === pageNumber)
-                    .map(field => {
-                      const pageRect = pageRef.current?.getBoundingClientRect()
-                      if (!pageRect) return null
-                      
-                      const left = field.x * pageRect.width
-                      const top = field.y * pageRect.height
-                      const width = field.width * pageRect.width
-                      const height = field.height * pageRect.height
-                      
-                      return (
-                        <div
-                          key={field.id}
-                          className={`absolute border-2 border-dashed ${
-                            selectedField === field.id 
-                              ? 'border-green-500 bg-green-200/30' 
-                              : 'border-blue-400 bg-blue-100/20 hover:border-blue-500'
-                          }`}
-                          style={{
-                            left: `${left}px`,
-                            top: `${top}px`,
-                            width: `${width}px`,
-                            height: `${height}px`,
-                            pointerEvents: 'auto'
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setSelectedField(field.id)
-                          }}
-                        >
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium opacity-80">
-                              Signature
+                  {editMode &&
+                    localSignatureFields
+                      .filter((field) => field.page === pageNumber)
+                      .map((field) => {
+                        const pageRect = pageRef.current?.getBoundingClientRect()
+                        if (!pageRect) return null
+
+                        const left = field.x * pageRect.width
+                        const top = field.y * pageRect.height
+                        const width = field.width * pageRect.width
+                        const height = field.height * pageRect.height
+
+                        return (
+                          <div
+                            key={field.id}
+                            className={`absolute border-2 border-dashed ${
+                              selectedField === field.id
+                                ? "border-green-500 bg-green-200/30"
+                                : "border-blue-400 bg-blue-100/20 hover:border-blue-500"
+                            }`}
+                            style={{
+                              left: `${left}px`,
+                              top: `${top}px`,
+                              width: `${width}px`,
+                              height: `${height}px`,
+                              pointerEvents: "auto",
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setSelectedField(field.id)
+                            }}
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium opacity-80">
+                                Signature
+                              </div>
                             </div>
+
+                            {selectedField === field.id && (
+                              <button
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600 transition-colors"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  deleteSignatureField(field.id)
+                                }}
+                                title="Delete field"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
                           </div>
-                          
-                          {selectedField === field.id && (
-                            <button
-                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600 transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                deleteSignatureField(field.id)
-                              }}
-                              title="Delete field"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          )}
-                        </div>
-                      )
-                    })
-                  }
+                        )
+                      })}
                 </div>
               </Document>
             </div>

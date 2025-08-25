@@ -1,8 +1,8 @@
-import { prisma } from "@/lib/prisma"
-import { auth } from "@/lib/auth"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 
 const signatureFieldSchema = z.object({
   x: z.number().min(0).max(1),
@@ -54,10 +54,7 @@ export async function GET(
     return NextResponse.json({ signatureFields })
   } catch (error) {
     console.error("Error fetching signature fields:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch signature fields" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to fetch signature fields" }, { status: 500 })
   }
 }
 
@@ -119,7 +116,7 @@ export async function PUT(
     return NextResponse.json({ signatureFields: updatedSignatureFields })
   } catch (error) {
     console.error("Error updating signature fields:", error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid signature field data", details: error.issues },
@@ -127,9 +124,6 @@ export async function PUT(
       )
     }
 
-    return NextResponse.json(
-      { error: "Failed to update signature fields" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to update signature fields" }, { status: 500 })
   }
 }

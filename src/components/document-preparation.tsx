@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SignatureField } from "@/types"
+import type { SignatureField } from "@/types"
 
 interface ValidationResult {
   isValid: boolean
@@ -36,14 +36,14 @@ export function DocumentPreparation({
   fileUrl,
   fileName,
   currentStatus,
-  onStatusChange
+  onStatusChange,
 }: DocumentPreparationProps) {
   const [activeTab, setActiveTab] = useState("edit")
   const [signatureFields, setSignatureFields] = useState<SignatureField[]>([])
   const [validation, setValidation] = useState<ValidationResult>({
     isValid: false,
     errors: [],
-    warnings: []
+    warnings: [],
   })
   const [isLoading, setIsLoading] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
@@ -62,11 +62,11 @@ export function DocumentPreparation({
     try {
       setIsLoading(true)
       const response = await fetch(`/api/documents/${documentId}/signature-fields`)
-      
+
       if (!response.ok) {
         throw new Error("Failed to load signature fields")
       }
-      
+
       const data = await response.json()
       setSignatureFields(data.signatureFields || [])
     } catch (error) {
@@ -87,20 +87,23 @@ export function DocumentPreparation({
     }
 
     // Check for overlapping fields on same page
-    const pageGroups = signatureFields.reduce((acc, field) => {
-      if (!acc[field.page]) {
-        acc[field.page] = []
-      }
-      acc[field.page].push(field)
-      return acc
-    }, {} as Record<number, SignatureField[]>)
+    const pageGroups = signatureFields.reduce(
+      (acc, field) => {
+        if (!acc[field.page]) {
+          acc[field.page] = []
+        }
+        acc[field.page].push(field)
+        return acc
+      },
+      {} as Record<number, SignatureField[]>
+    )
 
     Object.entries(pageGroups).forEach(([page, fields]) => {
       for (let i = 0; i < fields.length; i++) {
         for (let j = i + 1; j < fields.length; j++) {
           const field1 = fields[i]
           const field2 = fields[j]
-          
+
           // Check for overlap
           const overlap = !(
             field1.x + field1.width <= field2.x ||
@@ -108,7 +111,7 @@ export function DocumentPreparation({
             field1.y + field1.height <= field2.y ||
             field2.y + field2.height <= field1.y
           )
-          
+
           if (overlap) {
             warnings.push(`Overlapping signature fields detected on page ${page}`)
           }
@@ -132,14 +135,16 @@ export function DocumentPreparation({
         field.x + field.width > 1 - margin ||
         field.y + field.height > 1 - margin
       ) {
-        warnings.push(`Signature field ${index + 1} on page ${field.page} is very close to page edge`)
+        warnings.push(
+          `Signature field ${index + 1} on page ${field.page} is very close to page edge`
+        )
       }
     })
 
     setValidation({
       isValid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     })
   }, [signatureFields])
 
@@ -155,7 +160,7 @@ export function DocumentPreparation({
     try {
       setIsLoading(true)
       setShowConfirmation(false)
-      
+
       // Update document status to SENT (ready for signing)
       const response = await fetch(`/api/documents/${documentId}`, {
         method: "PATCH",
@@ -163,7 +168,7 @@ export function DocumentPreparation({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: "SENT"
+          status: "SENT",
         }),
       })
 
@@ -173,7 +178,7 @@ export function DocumentPreparation({
 
       toast.success("Document prepared and ready for signing!")
       onStatusChange?.("SENT")
-      
+
       // Switch to preview tab to show final result
       setActiveTab("preview")
     } catch (error) {
@@ -201,7 +206,8 @@ export function DocumentPreparation({
             </Badge>
           </CardTitle>
           <CardDescription>
-            Prepare "{documentTitle}" for signing by adding signature fields and validating the layout
+            Prepare "{documentTitle}" for signing by adding signature fields and validating the
+            layout
           </CardDescription>
         </CardHeader>
       </Card>
@@ -227,13 +233,15 @@ export function DocumentPreparation({
                   <div className="font-medium mb-1">Errors (must be fixed):</div>
                   <ul className="list-disc list-inside space-y-1">
                     {validation.errors.map((error, index) => (
-                      <li key={index} className="text-sm">{error}</li>
+                      <li key={index} className="text-sm">
+                        {error}
+                      </li>
                     ))}
                   </ul>
                 </AlertDescription>
               </Alert>
             )}
-            
+
             {validation.warnings.length > 0 && (
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
@@ -241,7 +249,9 @@ export function DocumentPreparation({
                   <div className="font-medium mb-1">Warnings (recommended to fix):</div>
                   <ul className="list-disc list-inside space-y-1">
                     {validation.warnings.map((warning, index) => (
-                      <li key={index} className="text-sm">{warning}</li>
+                      <li key={index} className="text-sm">
+                        {warning}
+                      </li>
                     ))}
                   </ul>
                 </AlertDescription>
@@ -262,7 +272,11 @@ export function DocumentPreparation({
             <Eye className="h-4 w-4" />
             <span>Preview</span>
           </TabsTrigger>
-          <TabsTrigger value="send" className="flex items-center space-x-2" disabled={currentStatus !== "SENT"}>
+          <TabsTrigger
+            value="send"
+            className="flex items-center space-x-2"
+            disabled={currentStatus !== "SENT"}
+          >
             <Mail className="h-4 w-4" />
             <span>Send for Signing{currentStatus !== "SENT" ? ` (${currentStatus})` : ""}</span>
           </TabsTrigger>
@@ -299,17 +313,14 @@ export function DocumentPreparation({
                     Preview how the document will look with signature fields
                   </CardDescription>
                 </div>
-                
+
                 <div className="flex items-center space-x-2">
                   <Badge variant="outline">
-                    {signatureFields.length} field{signatureFields.length !== 1 ? 's' : ''}
+                    {signatureFields.length} field{signatureFields.length !== 1 ? "s" : ""}
                   </Badge>
-                  
+
                   {validation.isValid && currentStatus === "DRAFT" && (
-                    <Button 
-                      onClick={handlePrepareClick}
-                      disabled={isLoading}
-                    >
+                    <Button onClick={handlePrepareClick} disabled={isLoading}>
                       <Send className="h-4 w-4 mr-2" />
                       Prepare for Signing
                     </Button>
@@ -325,7 +336,7 @@ export function DocumentPreparation({
                 signatureFields={signatureFields}
                 className="h-[600px]"
               />
-              
+
               {signatureFields.length > 0 && (
                 <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <h4 className="font-medium text-blue-900 mb-2">Signature Field Summary</h4>
@@ -372,7 +383,7 @@ export function DocumentPreparation({
           </CardContent>
         </Card>
       )}
-      
+
       {/* Confirmation Dialog */}
       <PreparationConfirmation
         isOpen={showConfirmation}

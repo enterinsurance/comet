@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { isValidEmail } from "@/lib/email"
-import { SignatureField } from "@/types"
+import type { SignatureField } from "@/types"
 
 interface Signer {
   id: string
@@ -32,7 +32,7 @@ export function SignerManagement({
   documentId,
   documentTitle,
   signatureFields,
-  onSignersChange
+  onSignersChange,
 }: SignerManagementProps) {
   const [signers, setSigners] = useState<Signer[]>([])
   const [newSignerEmail, setNewSignerEmail] = useState("")
@@ -53,7 +53,7 @@ export function SignerManagement({
     }
 
     // Check if email already exists
-    if (signers.some(signer => signer.email.toLowerCase() === newSignerEmail.toLowerCase())) {
+    if (signers.some((signer) => signer.email.toLowerCase() === newSignerEmail.toLowerCase())) {
       toast.error("This email address has already been added")
       return
     }
@@ -63,7 +63,7 @@ export function SignerManagement({
       email: newSignerEmail.trim(),
       name: newSignerName.trim() || undefined,
       message: globalMessage.trim() || undefined,
-      assignedFields: []
+      assignedFields: [],
     }
 
     const updatedSigners = [...signers, newSigner]
@@ -78,10 +78,10 @@ export function SignerManagement({
   }
 
   const removeSigner = (signerId: string) => {
-    const signer = signers.find(s => s.id === signerId)
+    const signer = signers.find((s) => s.id === signerId)
     if (!signer) return
 
-    const updatedSigners = signers.filter(s => s.id !== signerId)
+    const updatedSigners = signers.filter((s) => s.id !== signerId)
     setSigners(updatedSigners)
     onSignersChange?.(updatedSigners)
 
@@ -89,10 +89,8 @@ export function SignerManagement({
   }
 
   const updateSignerMessage = (signerId: string, message: string) => {
-    const updatedSigners = signers.map(signer =>
-      signer.id === signerId
-        ? { ...signer, message: message.trim() || undefined }
-        : signer
+    const updatedSigners = signers.map((signer) =>
+      signer.id === signerId ? { ...signer, message: message.trim() || undefined } : signer
     )
     setSigners(updatedSigners)
     onSignersChange?.(updatedSigners)
@@ -100,16 +98,16 @@ export function SignerManagement({
 
   const assignFieldToSigner = (fieldId: string, signerId: string | null) => {
     // First, remove the field from any existing assignments
-    let updatedSigners = signers.map(signer => ({
+    let updatedSigners = signers.map((signer) => ({
       ...signer,
-      assignedFields: signer.assignedFields.filter(field => field.id !== fieldId)
+      assignedFields: signer.assignedFields.filter((field) => field.id !== fieldId),
     }))
 
     // Then assign it to the new signer (if any)
     if (signerId) {
-      const field = signatureFields.find(f => f.id === fieldId)
+      const field = signatureFields.find((f) => f.id === fieldId)
       if (field) {
-        updatedSigners = updatedSigners.map(signer =>
+        updatedSigners = updatedSigners.map((signer) =>
           signer.id === signerId
             ? { ...signer, assignedFields: [...signer.assignedFields, field] }
             : signer
@@ -122,8 +120,10 @@ export function SignerManagement({
   }
 
   const getUnassignedFields = () => {
-    const assignedFieldIds = signers.flatMap(signer => signer.assignedFields.map(field => field.id))
-    return signatureFields.filter(field => !assignedFieldIds.includes(field.id))
+    const assignedFieldIds = signers.flatMap((signer) =>
+      signer.assignedFields.map((field) => field.id)
+    )
+    return signatureFields.filter((field) => !assignedFieldIds.includes(field.id))
   }
 
   const getTotalAssignedFields = () => {
@@ -156,7 +156,7 @@ export function SignerManagement({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
@@ -166,7 +166,7 @@ export function SignerManagement({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
@@ -199,7 +199,7 @@ export function SignerManagement({
                 onKeyDown={(e) => e.key === "Enter" && addSigner()}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="signer-name">Full Name (optional)</Label>
               <Input
@@ -258,10 +258,11 @@ export function SignerManagement({
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <Badge variant="outline">
-                      {signer.assignedFields.length} field{signer.assignedFields.length !== 1 ? 's' : ''}
+                      {signer.assignedFields.length} field
+                      {signer.assignedFields.length !== 1 ? "s" : ""}
                     </Badge>
                     <Button
                       variant="ghost"
@@ -296,7 +297,9 @@ export function SignerManagement({
 
                 {/* Custom Message */}
                 <div className="space-y-2">
-                  <Label htmlFor={`message-${signer.id}`} className="text-sm">Custom Message</Label>
+                  <Label htmlFor={`message-${signer.id}`} className="text-sm">
+                    Custom Message
+                  </Label>
                   <Textarea
                     id={`message-${signer.id}`}
                     placeholder={globalMessage || "Add a personal message for this signer..."}
@@ -355,7 +358,8 @@ export function SignerManagement({
             <User className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
             <div className="font-medium text-muted-foreground">No signers added yet</div>
             <div className="text-sm text-muted-foreground mt-1">
-              Add signers above to assign the {signatureFields.length} signature field{signatureFields.length !== 1 ? 's' : ''} in this document
+              Add signers above to assign the {signatureFields.length} signature field
+              {signatureFields.length !== 1 ? "s" : ""} in this document
             </div>
           </CardContent>
         </Card>

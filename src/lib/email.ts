@@ -1,6 +1,6 @@
 import { render } from "@react-email/render"
-import { SigningInvitationEmail } from "@/emails/signing-invitation"
 import { SigningCompletionEmail } from "@/emails/signing-completion"
+import { SigningInvitationEmail } from "@/emails/signing-invitation"
 import { EMAIL_CONFIG, resend } from "@/lib/resend"
 
 export interface SendSigningInvitationProps {
@@ -141,11 +141,9 @@ export async function sendCompletionNotification({
 /**
  * Send bulk signing invitations
  */
-export async function sendBulkSigningInvitations(
-  invitations: SendSigningInvitationProps[]
-) {
+export async function sendBulkSigningInvitations(invitations: SendSigningInvitationProps[]) {
   const results = []
-  
+
   for (const invitation of invitations) {
     try {
       const result = await sendSigningInvitation(invitation)
@@ -162,7 +160,7 @@ export async function sendBulkSigningInvitations(
       })
     }
   }
-  
+
   return results
 }
 
@@ -179,11 +177,11 @@ export function isValidEmail(email: string): boolean {
  */
 export function sanitizeEmailForDisplay(email: string): string {
   if (!email || !isValidEmail(email)) return "Invalid email"
-  
+
   const [localPart, domain] = email.split("@")
   if (localPart.length <= 3) {
     return `${localPart}***@${domain}`
   }
-  
+
   return `${localPart.substring(0, 3)}***@${domain}`
 }

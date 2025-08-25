@@ -22,10 +22,10 @@ export function generateInvitationToken(): string {
 export function isValidToken(token: string): boolean {
   // UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  
+
   // Base64url format (32 chars)
   const base64urlRegex = /^[A-Za-z0-9_-]{32}$/
-  
+
   return uuidRegex.test(token) || base64urlRegex.test(token)
 }
 

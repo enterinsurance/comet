@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export function EmailTest() {
   const [isLoading, setIsLoading] = useState(false)
@@ -47,11 +53,7 @@ export function EmailTest() {
       toast.success(`Test ${emailType} email sent successfully! Message ID: ${result.messageId}`)
     } catch (error) {
       console.error("Test email error:", error)
-      toast.error(
-        error instanceof Error 
-          ? error.message 
-          : "Failed to send test email"
-      )
+      toast.error(error instanceof Error ? error.message : "Failed to send test email")
     } finally {
       setIsLoading(false)
     }
@@ -71,7 +73,10 @@ export function EmailTest() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email-type">Email Type</Label>
-          <Select value={emailType} onValueChange={(value: "invitation" | "completion") => setEmailType(value)}>
+          <Select
+            value={emailType}
+            onValueChange={(value: "invitation" | "completion") => setEmailType(value)}
+          >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -105,13 +110,11 @@ export function EmailTest() {
           />
         </div>
 
-        <Button 
-          onClick={sendTestEmail} 
-          disabled={isLoading || !emailAddress}
-          className="w-full"
-        >
+        <Button onClick={sendTestEmail} disabled={isLoading || !emailAddress} className="w-full">
           <Send className="h-4 w-4 mr-2" />
-          {isLoading ? "Sending..." : `Send Test ${emailType === "invitation" ? "Invitation" : "Completion"}`}
+          {isLoading
+            ? "Sending..."
+            : `Send Test ${emailType === "invitation" ? "Invitation" : "Completion"}`}
         </Button>
 
         <div className="text-xs text-muted-foreground">

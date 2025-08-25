@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
-import { SignatureField } from "@/types"
+import type { SignatureField } from "@/types"
 
 interface PreparationConfirmationProps {
   isOpen: boolean
@@ -29,15 +29,18 @@ export function PreparationConfirmation({
   onConfirm,
   documentTitle,
   signatureFields,
-  isLoading = false
+  isLoading = false,
 }: PreparationConfirmationProps) {
-  const pageGroups = signatureFields.reduce((acc, field) => {
-    if (!acc[field.page]) {
-      acc[field.page] = []
-    }
-    acc[field.page].push(field)
-    return acc
-  }, {} as Record<number, SignatureField[]>)
+  const pageGroups = signatureFields.reduce(
+    (acc, field) => {
+      if (!acc[field.page]) {
+        acc[field.page] = []
+      }
+      acc[field.page].push(field)
+      return acc
+    },
+    {} as Record<number, SignatureField[]>
+  )
 
   const totalPages = Object.keys(pageGroups).length
 
@@ -67,7 +70,7 @@ export function PreparationConfirmation({
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-900">
-                {signatureFields.filter(f => f.signerEmail).length}
+                {signatureFields.filter((f) => f.signerEmail).length}
               </div>
               <div className="text-sm text-blue-700">Assigned Fields</div>
             </div>
@@ -138,14 +141,14 @@ export function PreparationConfirmation({
           </div>
 
           {/* Warning for unassigned fields */}
-          {signatureFields.some(f => !f.signerEmail) && (
+          {signatureFields.some((f) => !f.signerEmail) && (
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
                 <div className="font-medium">Some fields are unassigned</div>
                 <div className="text-sm mt-1">
-                  Fields without a specific signer email can be signed by anyone with access to the document.
-                  You can assign specific signers later when sending invitations.
+                  Fields without a specific signer email can be signed by anyone with access to the
+                  document. You can assign specific signers later when sending invitations.
                 </div>
               </AlertDescription>
             </Alert>

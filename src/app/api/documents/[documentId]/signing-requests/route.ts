@@ -57,36 +57,33 @@ export async function GET(
 
     // Add computed fields
     const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000"
-    
-    const requestsWithStatus = signingRequests.map(request => ({
+
+    const requestsWithStatus = signingRequests.map((request) => ({
       ...request,
       signingUrl: `${baseUrl}/sign/${request.token}`,
       isExpired: isTokenExpired(request.expiresAt),
       signatureCount: request.signatures.length,
-      lastSignedAt: request.signatures.length > 0 
-        ? new Date(Math.max(...request.signatures.map(s => new Date(s.createdAt).getTime())))
-        : null,
+      lastSignedAt:
+        request.signatures.length > 0
+          ? new Date(Math.max(...request.signatures.map((s) => new Date(s.createdAt).getTime())))
+          : null,
     }))
 
     return NextResponse.json({
       signingRequests: requestsWithStatus,
       summary: {
         total: signingRequests.length,
-        pending: signingRequests.filter(sr => sr.status === "PENDING").length,
-        viewed: signingRequests.filter(sr => sr.status === "VIEWED").length,
-        signed: signingRequests.filter(sr => sr.status === "SIGNED").length,
-        expired: requestsWithStatus.filter(sr => sr.isExpired).length,
-        declined: signingRequests.filter(sr => sr.status === "DECLINED").length,
+        pending: signingRequests.filter((sr) => sr.status === "PENDING").length,
+        viewed: signingRequests.filter((sr) => sr.status === "VIEWED").length,
+        signed: signingRequests.filter((sr) => sr.status === "SIGNED").length,
+        expired: requestsWithStatus.filter((sr) => sr.isExpired).length,
+        declined: signingRequests.filter((sr) => sr.status === "DECLINED").length,
         totalSignatures: signingRequests.reduce((sum, sr) => sum + sr.signatures.length, 0),
       },
     })
-
   } catch (error) {
     console.error("Get signing requests error:", error)
-    return NextResponse.json(
-      { error: "Failed to fetch signing requests" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to fetch signing requests" }, { status: 500 })
   }
 }
 
@@ -129,10 +126,7 @@ export async function DELETE(
 
     // Don't allow deletion of signed requests
     if (signingRequest.status === "SIGNED") {
-      return NextResponse.json(
-        { error: "Cannot delete a signed request" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Cannot delete a signed request" }, { status: 400 })
     }
 
     // Delete the signing request (will cascade delete signatures)
@@ -141,12 +135,8 @@ export async function DELETE(
     })
 
     return NextResponse.json({ success: true })
-
   } catch (error) {
     console.error("Delete signing request error:", error)
-    return NextResponse.json(
-      { error: "Failed to delete signing request" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to delete signing request" }, { status: 500 })
   }
 }

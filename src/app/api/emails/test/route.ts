@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
-import { sendSigningInvitation, sendCompletionNotification } from "@/lib/email"
+import { sendCompletionNotification, sendSigningInvitation } from "@/lib/email"
 
 const testEmailSchema = z.object({
   type: z.enum(["invitation", "completion"]),
@@ -67,8 +67,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Test email error:", error)
     console.error("Environment check:", {
-      RESEND_API_KEY: process.env.RESEND_API_KEY ? '[SET]' : '[NOT SET]',
-      EMAIL_FROM: process.env.EMAIL_FROM || '[NOT SET]'
+      RESEND_API_KEY: process.env.RESEND_API_KEY ? "[SET]" : "[NOT SET]",
+      EMAIL_FROM: process.env.EMAIL_FROM || "[NOT SET]",
     })
 
     if (error instanceof z.ZodError) {
@@ -85,9 +85,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json(
-      { error: "Failed to send test email" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to send test email" }, { status: 500 })
   }
 }

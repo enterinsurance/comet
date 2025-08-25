@@ -1,12 +1,12 @@
 "use client"
 
+import { Edit3, Save, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { PDFViewer } from "@/components/pdf-viewer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { SignatureField } from "@/types"
-import { Edit3, Save, X } from "lucide-react"
+import type { SignatureField } from "@/types"
 
 interface DocumentEditorProps {
   documentId: string
@@ -15,11 +15,11 @@ interface DocumentEditorProps {
   onEditModeChange?: (editMode: boolean) => void
 }
 
-export function DocumentEditor({ 
-  documentId, 
-  fileUrl, 
-  fileName, 
-  onEditModeChange 
+export function DocumentEditor({
+  documentId,
+  fileUrl,
+  fileName,
+  onEditModeChange,
 }: DocumentEditorProps) {
   const [editMode, setEditMode] = useState(false)
   const [signatureFields, setSignatureFields] = useState<SignatureField[]>([])
@@ -35,11 +35,11 @@ export function DocumentEditor({
     try {
       setIsLoading(true)
       const response = await fetch(`/api/documents/${documentId}/signature-fields`)
-      
+
       if (!response.ok) {
         throw new Error("Failed to load signature fields")
       }
-      
+
       const data = await response.json()
       setSignatureFields(data.signatureFields || [])
       setHasChanges(false)
@@ -54,9 +54,9 @@ export function DocumentEditor({
   const saveSignatureFields = async () => {
     try {
       setIsLoading(true)
-      
+
       // Convert fields to API format (without id for new fields)
-      const fieldsToSave = signatureFields.map(field => ({
+      const fieldsToSave = signatureFields.map((field) => ({
         x: field.x,
         y: field.y,
         width: field.width,
@@ -129,13 +129,12 @@ export function DocumentEditor({
             <div>
               <CardTitle className="text-lg">Document Editor</CardTitle>
               <CardDescription>
-                {editMode 
-                  ? "Click and drag to add signature fields" 
-                  : "Add signature fields to prepare document for signing"
-                }
+                {editMode
+                  ? "Click and drag to add signature fields"
+                  : "Add signature fields to prepare document for signing"}
               </CardDescription>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               {!editMode ? (
                 <Button onClick={handleEditModeToggle} disabled={isLoading}>
@@ -145,27 +144,27 @@ export function DocumentEditor({
               ) : (
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground">
-                    {signatureFields.length} field{signatureFields.length !== 1 ? 's' : ''}
+                    {signatureFields.length} field{signatureFields.length !== 1 ? "s" : ""}
                   </span>
-                  
+
                   {hasChanges && (
                     <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
                       Unsaved changes
                     </span>
                   )}
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleCancelEdit}
                     disabled={isLoading}
                   >
                     <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
-                  
-                  <Button 
-                    onClick={saveSignatureFields} 
+
+                  <Button
+                    onClick={saveSignatureFields}
                     disabled={isLoading || !hasChanges}
                     size="sm"
                   >
@@ -177,7 +176,7 @@ export function DocumentEditor({
             </div>
           </div>
         </CardHeader>
-        
+
         {editMode && (
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">

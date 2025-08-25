@@ -32,59 +32,57 @@ export const SigningCompletionEmail = ({
   completedSignatures = 1,
 }: SigningCompletionEmailProps) => {
   const isFullyComplete = completedSignatures === totalSignatures
-  
+
   return (
     <Html>
       <Head />
       <Preview>
-        {isFullyComplete 
-          ? `"${documentTitle}" has been fully signed` 
-          : `${signerName} has signed "${documentTitle}"`
-        }
+        {isFullyComplete
+          ? `"${documentTitle}" has been fully signed`
+          : `${signerName} has signed "${documentTitle}"`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={logoContainer}>
             <Text style={logo}>📄 Comet</Text>
           </Section>
-          
+
           <Heading style={heading}>
             {isFullyComplete ? "Document Fully Signed! ✅" : "Signature Received ✅"}
           </Heading>
-          
+
+          <Text style={paragraph}>Hello {recipientName},</Text>
+
           <Text style={paragraph}>
-            Hello {recipientName},
-          </Text>
-          
-          <Text style={paragraph}>
-            {isFullyComplete 
+            {isFullyComplete
               ? `Great news! "${documentTitle}" has been fully signed by all parties.`
-              : `${signerName} has signed "${documentTitle}" on ${completedAt}.`
-            }
+              : `${signerName} has signed "${documentTitle}" on ${completedAt}.`}
           </Text>
-          
+
           <Section style={documentSection}>
             <Text style={documentTitle as any}>📄 {documentTitle}</Text>
             <Text style={statusText}>
               Status: {completedSignatures} of {totalSignatures} signatures completed
             </Text>
           </Section>
-          
+
           <Section style={progressSection}>
             <Text style={progressLabel}>Signing Progress:</Text>
             <div style={progressBar}>
-              <div 
-                style={{
-                  ...progressFill,
-                  width: `${(completedSignatures / totalSignatures) * 100}%`
-                } as any}
+              <div
+                style={
+                  {
+                    ...progressFill,
+                    width: `${(completedSignatures / totalSignatures) * 100}%`,
+                  } as any
+                }
               />
             </div>
             <Text style={progressText}>
               {Math.round((completedSignatures / totalSignatures) * 100)}% Complete
             </Text>
           </Section>
-          
+
           {downloadUrl && isFullyComplete && (
             <Section style={buttonContainer}>
               <Button style={button} href={downloadUrl}>
@@ -92,21 +90,21 @@ export const SigningCompletionEmail = ({
               </Button>
             </Section>
           )}
-          
+
           {!isFullyComplete && (
             <Text style={paragraph}>
-              The document is still waiting for {totalSignatures - completedSignatures} more signature{totalSignatures - completedSignatures !== 1 ? 's' : ''}. 
-              You'll receive another notification when all signatures are complete.
+              The document is still waiting for {totalSignatures - completedSignatures} more
+              signature{totalSignatures - completedSignatures !== 1 ? "s" : ""}. You'll receive
+              another notification when all signatures are complete.
             </Text>
           )}
-          
+
           <Hr style={hr} />
-          
+
           <Text style={footer}>
-            {isFullyComplete 
+            {isFullyComplete
               ? "All signatures have been collected and the document is now complete."
-              : "You'll be notified when all signatures are collected."
-            }
+              : "You'll be notified when all signatures are collected."}
             <br />
             <br />
             Powered by Comet Document Signing
@@ -120,7 +118,8 @@ export const SigningCompletionEmail = ({
 // Styles
 const main = {
   backgroundColor: "#ffffff",
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+  fontFamily:
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
 }
 
 const container = {

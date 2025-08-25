@@ -7,11 +7,18 @@ import { InvitationTracker } from "@/components/invitation-tracker"
 import { SignerManagement } from "@/components/signer-management"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SignatureField } from "@/types"
+import type { SignatureField } from "@/types"
 
 interface Signer {
   id: string
@@ -34,7 +41,7 @@ export function InvitationManagement({
   documentTitle,
   documentStatus,
   signatureFields,
-  onStatusChange
+  onStatusChange,
 }: InvitationManagementProps) {
   const [activeTab, setActiveTab] = useState("manage")
   const [signers, setSigners] = useState<Signer[]>([])
@@ -48,16 +55,15 @@ export function InvitationManagement({
   }, [])
 
   const canSendInvitations = () => {
-    return (
-      documentStatus === "SENT" && 
-      signers.length > 0 && 
-      signatureFields.length > 0
-    )
+    return documentStatus === "SENT" && signers.length > 0 && signatureFields.length > 0
   }
 
   const getInvitationSummary = () => {
     const totalFields = signatureFields.length
-    const assignedFields = signers.reduce((total, signer) => total + signer.assignedFields.length, 0)
+    const assignedFields = signers.reduce(
+      (total, signer) => total + signer.assignedFields.length,
+      0
+    )
     const unassignedFields = totalFields - assignedFields
 
     return {
@@ -79,11 +85,11 @@ export function InvitationManagement({
       setIsLoading(true)
 
       // Prepare signers data for API
-      const signersData = signers.map(signer => ({
+      const signersData = signers.map((signer) => ({
         email: signer.email,
         name: signer.name,
         message: signer.message,
-        assignedFieldIds: signer.assignedFields.map(field => field.id),
+        assignedFieldIds: signer.assignedFields.map((field) => field.id),
       }))
 
       const response = await fetch(`/api/documents/${documentId}/send-invitations`, {
@@ -103,28 +109,23 @@ export function InvitationManagement({
       }
 
       const result = await response.json()
-      
+
       toast.success(
-        `Successfully sent ${result.successfulEmails} invitation${result.successfulEmails !== 1 ? 's' : ''}!`
+        `Successfully sent ${result.successfulEmails} invitation${result.successfulEmails !== 1 ? "s" : ""}!`
       )
 
       if (result.failedEmails > 0) {
         toast.error(
-          `Failed to send ${result.failedEmails} invitation${result.failedEmails !== 1 ? 's' : ''}`
+          `Failed to send ${result.failedEmails} invitation${result.failedEmails !== 1 ? "s" : ""}`
         )
       }
 
       setShowSendDialog(false)
       setActiveTab("status")
-      setRefreshTracker(prev => prev + 1)
-      
+      setRefreshTracker((prev) => prev + 1)
     } catch (error) {
       console.error("Error sending invitations:", error)
-      toast.error(
-        error instanceof Error 
-          ? error.message 
-          : "Failed to send invitations"
-      )
+      toast.error(error instanceof Error ? error.message : "Failed to send invitations")
     } finally {
       setIsLoading(false)
     }
@@ -155,8 +156,8 @@ export function InvitationManagement({
               <div className="font-medium">Document Not Ready</div>
             </div>
             <div className="text-sm text-orange-700 mt-1">
-              This document must be prepared for signing before you can send invitations. 
-              Please go back to the preparation step and prepare the document first.
+              This document must be prepared for signing before you can send invitations. Please go
+              back to the preparation step and prepare the document first.
             </div>
           </CardContent>
         </Card>
@@ -205,11 +206,15 @@ export function InvitationManagement({
                     <div className="text-sm text-blue-700">Total Fields</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-900">{summary.assignedFields}</div>
+                    <div className="text-2xl font-bold text-green-900">
+                      {summary.assignedFields}
+                    </div>
                     <div className="text-sm text-green-700">Assigned</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{summary.unassignedFields}</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {summary.unassignedFields}
+                    </div>
                     <div className="text-sm text-gray-700">Unassigned</div>
                   </div>
                 </div>
@@ -217,8 +222,9 @@ export function InvitationManagement({
                 {/* Warnings */}
                 {summary.hasUnassignedFields && (
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
-                    <strong>Note:</strong> You have {summary.unassignedFields} unassigned signature field{summary.unassignedFields !== 1 ? 's' : ''}. 
-                    These fields can be signed by any recipient who receives the signing URL.
+                    <strong>Note:</strong> You have {summary.unassignedFields} unassigned signature
+                    field{summary.unassignedFields !== 1 ? "s" : ""}. These fields can be signed by
+                    any recipient who receives the signing URL.
                   </div>
                 )}
 
@@ -244,7 +250,7 @@ export function InvitationManagement({
             documentId={documentId}
             documentTitle={documentTitle}
             key={refreshTracker}
-            onRefresh={() => setRefreshTracker(prev => prev + 1)}
+            onRefresh={() => setRefreshTracker((prev) => prev + 1)}
           />
         </TabsContent>
       </Tabs>
@@ -255,7 +261,8 @@ export function InvitationManagement({
           <DialogHeader>
             <DialogTitle>Send Signing Invitations</DialogTitle>
             <DialogDescription>
-              You're about to send {summary.signers} signing invitation{summary.signers !== 1 ? 's' : ''} for "{documentTitle}"
+              You're about to send {summary.signers} signing invitation
+              {summary.signers !== 1 ? "s" : ""} for "{documentTitle}"
             </DialogDescription>
           </DialogHeader>
 
@@ -282,32 +289,29 @@ export function InvitationManagement({
                 onChange={(e) => setExpirationDays(parseInt(e.target.value) || 7)}
               />
               <div className="text-xs text-muted-foreground">
-                Recipients will have {expirationDays} day{expirationDays !== 1 ? 's' : ''} to sign the document
+                Recipients will have {expirationDays} day{expirationDays !== 1 ? "s" : ""} to sign
+                the document
               </div>
             </div>
 
             {summary.hasUnassignedFields && (
               <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
-                <strong>Warning:</strong> {summary.unassignedFields} signature field{summary.unassignedFields !== 1 ? 's are' : ' is'} unassigned. 
-                Any recipient will be able to sign these fields.
+                <strong>Warning:</strong> {summary.unassignedFields} signature field
+                {summary.unassignedFields !== 1 ? "s are" : " is"} unassigned. Any recipient will be
+                able to sign these fields.
               </div>
             )}
           </div>
 
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowSendDialog(false)}
-              disabled={isLoading}
-            >
+            <Button variant="outline" onClick={() => setShowSendDialog(false)} disabled={isLoading}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSendInvitations}
-              disabled={isLoading}
-            >
+            <Button onClick={handleSendInvitations} disabled={isLoading}>
               <Send className="h-4 w-4 mr-2" />
-              {isLoading ? "Sending..." : `Send ${summary.signers} Invitation${summary.signers !== 1 ? 's' : ''}`}
+              {isLoading
+                ? "Sending..."
+                : `Send ${summary.signers} Invitation${summary.signers !== 1 ? "s" : ""}`}
             </Button>
           </DialogFooter>
         </DialogContent>

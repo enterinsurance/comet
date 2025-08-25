@@ -76,7 +76,7 @@ export default function DocumentViewPage() {
   const [document, setDocument] = useState<Document | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   const handleStatusChange = (newStatus: string) => {
     if (document) {
       setDocument({ ...document, status: newStatus })
@@ -257,8 +257,8 @@ export default function DocumentViewPage() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => {
-                  const editorContainer = window.document.getElementById('document-editor')
-                  editorContainer?.scrollIntoView({ behavior: 'smooth' })
+                  const editorContainer = window.document.getElementById("document-editor")
+                  editorContainer?.scrollIntoView({ behavior: "smooth" })
                 }}
               >
                 <FileText className="h-4 w-4 mr-2" />
@@ -340,20 +340,20 @@ export default function DocumentViewPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {document.status === "DRAFT" && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="w-full justify-start"
                   onClick={() => {
-                    const editorContainer = window.document.getElementById('document-editor')
-                    editorContainer?.scrollIntoView({ behavior: 'smooth' })
+                    const editorContainer = window.document.getElementById("document-editor")
+                    editorContainer?.scrollIntoView({ behavior: "smooth" })
                   }}
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Prepare Document
                 </Button>
               )}
-              
+
               {document.status === "SENT" && (
                 <div className="text-sm text-green-600 p-3 bg-green-50 rounded-lg border border-green-200">
                   <div className="font-medium">Document Ready</div>
@@ -362,22 +362,22 @@ export default function DocumentViewPage() {
                   </div>
                 </div>
               )}
-              
+
               {document.status === "SENT" && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="w-full justify-start"
                   onClick={() => {
-                    const editorContainer = window.document.getElementById('document-editor')
-                    editorContainer?.scrollIntoView({ behavior: 'smooth' })
+                    const editorContainer = window.document.getElementById("document-editor")
+                    editorContainer?.scrollIntoView({ behavior: "smooth" })
                   }}
                 >
                   <User className="h-4 w-4 mr-2" />
                   Send for Signing
                 </Button>
               )}
-              
+
               {document.status === "DRAFT" && (
                 <Button variant="outline" size="sm" className="w-full justify-start" disabled>
                   <User className="h-4 w-4 mr-2" />
@@ -387,7 +387,7 @@ export default function DocumentViewPage() {
                   </Badge>
                 </Button>
               )}
-              
+
               <Button variant="outline" size="sm" className="w-full justify-start">
                 <Share2 className="h-4 w-4 mr-2" />
                 Share Document

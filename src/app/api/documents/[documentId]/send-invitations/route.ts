@@ -2,9 +2,9 @@ import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
 import { sendBulkSigningInvitations } from "@/lib/email"
-import { generateSigningToken, calculateTokenExpiration } from "@/lib/tokens"
+import { prisma } from "@/lib/prisma"
+import { calculateTokenExpiration, generateSigningToken } from "@/lib/tokens"
 
 const signerSchema = z.object({
   email: z.string().email(),
@@ -72,7 +72,7 @@ export async function POST(
 
     const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000"
     const expirationDate = calculateTokenExpiration(expiresInDays)
-    
+
     // Create signing requests and prepare invitations
     const invitations = []
     const signingRequests = []
@@ -80,7 +80,7 @@ export async function POST(
     for (const signer of signers) {
       // Generate secure token for this signer
       const token = generateSigningToken()
-      
+
       // Create signing request in database
       const signingRequest = await prisma.signingRequest.create({
         data: {
@@ -111,14 +111,14 @@ export async function POST(
     const emailResults = await sendBulkSigningInvitations(invitations)
 
     // Count successful and failed emails
-    const successfulEmails = emailResults.filter(result => result.success).length
-    const failedEmails = emailResults.filter(result => !result.success)
+    const successfulEmails = emailResults.filter((result) => result.success).length
+    const failedEmails = emailResults.filter((result) => !result.success)
 
     // Update document status if needed
     if (successfulEmails > 0) {
       await prisma.document.update({
         where: { id: documentId },
-        data: { 
+        data: {
           status: "SENT",
           updatedAt: new Date(),
         },
@@ -131,7 +131,7 @@ export async function POST(
       totalInvitations: signers.length,
       successfulEmails,
       failedEmails: failedEmails.length,
-      signingRequests: signingRequests.map(sr => ({
+      signingRequests: signingRequests.map((sr) => ({
         id: sr.id,
         email: sr.email,
         name: sr.name,
@@ -143,7 +143,6 @@ export async function POST(
     }
 
     return NextResponse.json(response)
-
   } catch (error) {
     console.error("Send invitations error:", error)
 
@@ -154,9 +153,6 @@ export async function POST(
       )
     }
 
-    return NextResponse.json(
-      { error: "Failed to send invitations" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to send invitations" }, { status: 500 })
   }
 }

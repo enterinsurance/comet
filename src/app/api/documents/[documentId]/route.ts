@@ -5,7 +5,9 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 const updateDocumentSchema = z.object({
-  status: z.enum(["DRAFT", "SENT", "PARTIALLY_SIGNED", "COMPLETED", "EXPIRED", "CANCELLED"]).optional(),
+  status: z
+    .enum(["DRAFT", "SENT", "PARTIALLY_SIGNED", "COMPLETED", "EXPIRED", "CANCELLED"])
+    .optional(),
   title: z.string().min(1).optional(),
 })
 
@@ -122,7 +124,7 @@ export async function PATCH(
     return NextResponse.json(updatedDocument)
   } catch (error) {
     console.error("Update document error:", error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Invalid document data", details: error.issues },

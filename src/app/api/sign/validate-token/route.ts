@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { type NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
 export async function POST(request: NextRequest) {
   try {
-    const { token } = await request.json();
+    const { token } = await request.json()
 
     if (!token) {
-      return NextResponse.json(
-        { error: 'Token is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Token is required" }, { status: 400 })
     }
 
     // Find the signing invitation by token
@@ -28,21 +25,18 @@ export async function POST(request: NextRequest) {
           },
         },
       },
-    });
+    })
 
     if (!invitation) {
-      return NextResponse.json(
-        { error: 'Invalid or expired signing link' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Invalid or expired signing link" }, { status: 404 })
     }
 
     // Check if token is expired
-    const now = new Date();
-    const isExpired = invitation.expiresAt < now;
+    const now = new Date()
+    const isExpired = invitation.expiresAt < now
 
     // Check if already completed
-    const isCompleted = invitation.status === 'COMPLETED';
+    const isCompleted = invitation.status === "COMPLETED"
 
     // Prepare signing data
     const signingData = {
@@ -53,7 +47,7 @@ export async function POST(request: NextRequest) {
       recipientEmail: invitation.recipientEmail,
       recipientName: invitation.recipientName,
       expiresAt: invitation.expiresAt.toISOString(),
-      signatureFields: invitation.document.signatureFields.map(field => ({
+      signatureFields: invitation.document.signatureFields.map((field) => ({
         id: field.id,
         x: field.x,
         y: field.y,
@@ -66,18 +60,14 @@ export async function POST(request: NextRequest) {
       isCompleted,
       senderName: invitation.document.createdBy.name,
       senderEmail: invitation.document.createdBy.email,
-    };
+    }
 
     return NextResponse.json({
       success: true,
       signingData,
-    });
-
+    })
   } catch (error) {
-    console.error('Token validation error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    console.error("Token validation error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

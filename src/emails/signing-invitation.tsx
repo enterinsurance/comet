@@ -41,51 +41,47 @@ export const SigningInvitationEmail = ({
           <Section style={logoContainer}>
             <Text style={logo}>📄 Comet</Text>
           </Section>
-          
+
           <Heading style={heading}>Signature Request</Heading>
-          
-          <Text style={paragraph}>
-            Hello{recipientName ? ` ${recipientName}` : ""},
-          </Text>
-          
+
+          <Text style={paragraph}>Hello{recipientName ? ` ${recipientName}` : ""},</Text>
+
           <Text style={paragraph}>
             <strong>{senderName}</strong> has requested your signature on the following document:
           </Text>
-          
+
           <Section style={documentSection}>
             <Text style={documentTitle as any}>📄 {documentTitle}</Text>
           </Section>
-          
+
           {message && (
             <Section style={messageSection}>
               <Text style={messageLabel}>Message from {senderName}:</Text>
               <Text style={messageText}>"{message}"</Text>
             </Section>
           )}
-          
+
           <Section style={buttonContainer}>
             <Button style={button} href={signingUrl}>
               Sign Document
             </Button>
           </Section>
-          
-          <Text style={paragraph}>
-            Or copy and paste this URL into your browser:
-          </Text>
+
+          <Text style={paragraph}>Or copy and paste this URL into your browser:</Text>
           <Text style={link}>
             <a href={signingUrl} style={linkStyle as any}>
               {signingUrl}
             </a>
           </Text>
-          
+
           <Hr style={hr} />
-          
+
           <Text style={footer}>
             This signature request will expire in <strong>{expiresAt}</strong>.
             <br />
             If you have any questions, please contact {senderName} directly.
           </Text>
-          
+
           <Text style={footer}>
             <br />
             Powered by Comet Document Signing
@@ -99,7 +95,8 @@ export const SigningInvitationEmail = ({
 // Styles
 const main = {
   backgroundColor: "#ffffff",
-  fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+  fontFamily:
+    '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
 }
 
 const container = {

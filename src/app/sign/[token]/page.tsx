@@ -1,131 +1,162 @@
-'use client';
+"use client"
 
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import SignatureCanvas from 'react-signature-canvas';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
-import { Loader2, Download, PenTool, RotateCcw } from 'lucide-react';
+import { Download, Loader2, PenTool, RotateCcw, Users } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+import { useCallback, useEffect, useId, useState } from "react"
+import { Document, Page, pdfjs } from "react-pdf"
+import SignatureCanvas from "react-signature-canvas"
+import { toast } from "sonner"
+import { SignatureConfirmationDialog } from "@/components/signature-confirmation-dialog"
+import { SigningProgress } from "@/components/signing-progress"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 
 // Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`
 
 interface SigningData {
-  id: string;
-  documentId: string;
-  documentUrl: string;
-  documentName: string;
-  recipientEmail: string;
-  recipientName: string;
-  expiresAt: string;
+  id: string
+  documentId: string
+  documentUrl: string
+  documentName: string
+  recipientEmail: string
+  recipientName: string
+  expiresAt: string
   signatureFields: Array<{
-    id: string;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    page: number;
-    required: boolean;
-  }>;
-  isExpired: boolean;
-  isCompleted: boolean;
+    id: string
+    x: number
+    y: number
+    width: number
+    height: number
+    page: number
+    required: boolean
+  }>
+  isExpired: boolean
+  isCompleted: boolean
 }
 
 export default function PublicSigningPage() {
-  const params = useParams();
-  const router = useRouter();
-  const token = params.token as string;
+  const params = useParams()
+  const router = useRouter()
+  const token = params.token as string
+  const nameId = useId()
+  const titleId = useId()
+  const notesId = useId()
 
-  const [signingData, setSigningData] = useState<SigningData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [numPages, setNumPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pdfScale, setPdfScale] = useState(1.2);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [signingData, setSigningData] = useState<SigningData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [numPages, setNumPages] = useState<number>(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pdfScale] = useState(1.2)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [progressData, setProgressData] = useState<any>(null)
+
   // Signature capture state
-  const [signatureCanvas, setSignatureCanvas] = useState<SignatureCanvas | null>(null);
-  const [signatureData, setSignatureData] = useState<string | null>(null);
-  const [signerName, setSignerName] = useState('');
-  const [signerTitle, setSignerTitle] = useState('');
-  const [signerNotes, setSignerNotes] = useState('');
+  const [signatureCanvas, setSignatureCanvas] = useState<SignatureCanvas | null>(null)
+  const [signatureData, setSignatureData] = useState<string | null>(null)
+  const [signerName, setSignerName] = useState("")
+  const [signerTitle, setSignerTitle] = useState("")
+  const [signerNotes, setSignerNotes] = useState("")
+
+  const fetchSigningData = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/sign/validate-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to validate token")
+      }
+
+      const data = await response.json()
+      setSigningData(data.signingData)
+      setSignerName(data.signingData.recipientName || "")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load signing data")
+    } finally {
+      setLoading(false)
+    }
+  }, [token])
+
+  const fetchProgress = useCallback(async () => {
+    try {
+      const response = await fetch("/api/sign/progress", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setProgressData(data.progress)
+      }
+    } catch (err) {
+      console.error("Failed to fetch progress:", err)
+    }
+  }, [token])
 
   useEffect(() => {
     if (token) {
-      fetchSigningData();
+      fetchSigningData()
+      fetchProgress()
     }
-  }, [token]);
-
-  const fetchSigningData = async () => {
-    try {
-      const response = await fetch(`/api/sign/validate-token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to validate token');
-      }
-
-      const data = await response.json();
-      setSigningData(data.signingData);
-      setSignerName(data.signingData.recipientName || '');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load signing data');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [token, fetchSigningData, fetchProgress])
 
   const handleDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
-    setNumPages(numPages);
-  };
+    setNumPages(numPages)
+  }
 
   const handleClearSignature = () => {
     if (signatureCanvas) {
-      signatureCanvas.clear();
-      setSignatureData(null);
+      signatureCanvas.clear()
+      setSignatureData(null)
     }
-  };
+  }
 
   const handleSaveSignature = () => {
     if (signatureCanvas && !signatureCanvas.isEmpty()) {
-      const dataUrl = signatureCanvas.toDataURL();
-      setSignatureData(dataUrl);
-      toast.success('Signature captured successfully');
+      const dataUrl = signatureCanvas.toDataURL()
+      setSignatureData(dataUrl)
+      toast.success("Signature captured successfully")
     } else {
-      toast.error('Please provide a signature');
+      toast.error("Please provide a signature")
     }
-  };
+  }
 
-  const handleSubmitSigning = async () => {
+  const handleSignButtonClick = () => {
     if (!signatureData) {
-      toast.error('Please provide your signature');
-      return;
+      toast.error("Please provide your signature")
+      return
     }
 
     if (!signerName.trim()) {
-      toast.error('Please enter your name');
-      return;
+      toast.error("Please enter your name")
+      return
     }
 
-    setIsSubmitting(true);
+    setShowConfirmation(true)
+  }
+
+  const handleConfirmSigning = async () => {
+    setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/sign/submit', {
-        method: 'POST',
+      const response = await fetch("/api/sign/submit", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           token,
@@ -134,24 +165,24 @@ export default function PublicSigningPage() {
           signerTitle: signerTitle.trim(),
           signerNotes: signerNotes.trim(),
         }),
-      });
+      })
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit signature');
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to submit signature")
       }
 
-      const result = await response.json();
-      toast.success('Document signed successfully!');
-      
-      // Redirect to success page or show completion message
-      router.push(`/sign/${token}/success`);
+      toast.success("Document signed successfully!")
+
+      // Redirect to success page
+      router.push(`/sign/${token}/success`)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to submit signature');
+      toast.error(err instanceof Error ? err.message : "Failed to submit signature")
+      setShowConfirmation(false)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -161,7 +192,7 @@ export default function PublicSigningPage() {
           <p>Loading document...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (error || !signingData) {
@@ -174,18 +205,15 @@ export default function PublicSigningPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              {error || 'Invalid or expired signing link'}
+              {error || "Invalid or expired signing link"}
             </p>
-            <Button 
-              onClick={() => router.push('/')}
-              className="w-full"
-            >
+            <Button onClick={() => router.push("/")} className="w-full">
               Go to Homepage
             </Button>
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   if (signingData.isExpired) {
@@ -198,22 +226,19 @@ export default function PublicSigningPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              The signing link for "{signingData.documentName}" expired on{' '}
+              The signing link for "{signingData.documentName}" expired on{" "}
               {new Date(signingData.expiresAt).toLocaleDateString()}.
             </p>
             <p className="text-sm text-muted-foreground mb-4">
               Please contact the document sender to request a new signing link.
             </p>
-            <Button 
-              onClick={() => router.push('/')}
-              className="w-full"
-            >
+            <Button onClick={() => router.push("/")} className="w-full">
               Go to Homepage
             </Button>
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   if (signingData.isCompleted) {
@@ -228,16 +253,13 @@ export default function PublicSigningPage() {
             <p className="text-sm text-muted-foreground mb-4">
               The document "{signingData.documentName}" has already been signed.
             </p>
-            <Button 
-              onClick={() => router.push('/')}
-              className="w-full"
-            >
+            <Button onClick={() => router.push("/")} className="w-full">
               Go to Homepage
             </Button>
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
@@ -293,16 +315,12 @@ export default function PublicSigningPage() {
                     className="flex justify-center"
                   >
                     <div className="relative">
-                      <Page 
-                        pageNumber={currentPage} 
-                        scale={pdfScale}
-                        className="shadow-lg"
-                      />
-                      
+                      <Page pageNumber={currentPage} scale={pdfScale} className="shadow-lg" />
+
                       {/* Signature Field Overlays */}
                       {signingData.signatureFields
-                        .filter(field => field.page === currentPage)
-                        .map(field => (
+                        .filter((field) => field.page === currentPage)
+                        .map((field) => (
                           <div
                             key={field.id}
                             className="absolute border-2 border-blue-500 border-dashed bg-blue-100/30 flex items-center justify-center"
@@ -314,7 +332,7 @@ export default function PublicSigningPage() {
                             }}
                           >
                             <div className="text-xs text-blue-600 font-medium bg-white px-2 py-1 rounded">
-                              {field.required ? 'Signature Required' : 'Signature'}
+                              {field.required ? "Signature Required" : "Signature"}
                             </div>
                           </div>
                         ))}
@@ -327,6 +345,16 @@ export default function PublicSigningPage() {
 
           {/* Signing Panel */}
           <div className="space-y-6">
+            {/* Progress Tracking */}
+            {progressData && (
+              <SigningProgress
+                totalSigners={progressData.signingProgress.totalSigners}
+                completedSigners={progressData.signingProgress.completedSigners}
+                pendingSigners={progressData.signingProgress.pendingSigners}
+                progressPercentage={progressData.signingProgress.progressPercentage}
+                signers={progressData.signers}
+              />
+            )}
             {/* Signer Information */}
             <Card>
               <CardHeader>
@@ -337,20 +365,20 @@ export default function PublicSigningPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="signerName">Full Name *</Label>
+                  <Label htmlFor={nameId}>Full Name *</Label>
                   <Input
-                    id="signerName"
+                    id={nameId}
                     value={signerName}
                     onChange={(e) => setSignerName(e.target.value)}
                     placeholder="Enter your full name"
                     required
                   />
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="signerTitle">Title (Optional)</Label>
+                  <Label htmlFor={titleId}>Title (Optional)</Label>
                   <Input
-                    id="signerTitle"
+                    id={titleId}
                     value={signerTitle}
                     onChange={(e) => setSignerTitle(e.target.value)}
                     placeholder="e.g., CEO, Manager"
@@ -358,9 +386,9 @@ export default function PublicSigningPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="signerNotes">Notes (Optional)</Label>
+                  <Label htmlFor={notesId}>Notes (Optional)</Label>
                   <Textarea
-                    id="signerNotes"
+                    id={notesId}
                     value={signerNotes}
                     onChange={(e) => setSignerNotes(e.target.value)}
                     placeholder="Any additional comments..."
@@ -374,9 +402,7 @@ export default function PublicSigningPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Your Signature</CardTitle>
-                <CardDescription>
-                  Draw your signature in the box below
-                </CardDescription>
+                <CardDescription>Draw your signature in the box below</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
@@ -385,12 +411,12 @@ export default function PublicSigningPage() {
                     canvasProps={{
                       width: 300,
                       height: 150,
-                      className: 'signature-canvas bg-white rounded border',
-                      style: { width: '100%', height: '150px' }
+                      className: "signature-canvas bg-white rounded border",
+                      style: { width: "100%", height: "150px" },
                     }}
                   />
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -401,11 +427,7 @@ export default function PublicSigningPage() {
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Clear
                   </Button>
-                  <Button
-                    type="button"
-                    onClick={handleSaveSignature}
-                    className="flex-1"
-                  >
+                  <Button type="button" onClick={handleSaveSignature} className="flex-1">
                     Save Signature
                   </Button>
                 </div>
@@ -422,24 +444,17 @@ export default function PublicSigningPage() {
             <Card>
               <CardContent className="pt-6">
                 <Button
-                  onClick={handleSubmitSigning}
+                  onClick={handleSignButtonClick}
                   disabled={isSubmitting || !signatureData || !signerName.trim()}
                   className="w-full"
                   size="lg"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Submitting Signature...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Sign Document
-                    </>
-                  )}
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Sign Document
+                  </>
                 </Button>
-                
+
                 <p className="text-xs text-muted-foreground mt-2 text-center">
                   By signing, you agree that this constitutes a legal signature
                 </p>
@@ -447,7 +462,18 @@ export default function PublicSigningPage() {
             </Card>
           </div>
         </div>
+
+        {/* Signature Confirmation Dialog */}
+        <SignatureConfirmationDialog
+          open={showConfirmation}
+          onOpenChange={setShowConfirmation}
+          onConfirm={handleConfirmSigning}
+          signerName={signerName}
+          documentName={signingData.documentName}
+          signaturePreview={signatureData || undefined}
+          isSubmitting={isSubmitting}
+        />
       </div>
     </div>
-  );
+  )
 }
