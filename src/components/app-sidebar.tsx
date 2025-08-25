@@ -1,0 +1,115 @@
+"use client"
+
+import * as React from "react"
+import { FileText, Home, Settings2, SquareArrowUpRight, Users } from "lucide-react"
+
+import { NavMain } from "@/components/nav-main"
+import { NavUser } from "@/components/nav-user"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+} from "@/components/ui/sidebar"
+
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user: {
+    name: string
+    email: string
+    avatar: string
+  }
+}
+
+// Navigation data for the document signing platform
+const data = {
+  navMain: [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: Home,
+      isActive: true,
+    },
+    {
+      title: "Documents",
+      url: "/dashboard/documents",
+      icon: FileText,
+      items: [
+        {
+          title: "All Documents",
+          url: "/dashboard/documents",
+        },
+        {
+          title: "Upload Document",
+          url: "/dashboard/documents/upload",
+          badge: "Phase 2",
+        },
+      ],
+    },
+    {
+      title: "Recipients",
+      url: "/dashboard/recipients",
+      icon: Users,
+      badge: "Phase 4",
+      items: [
+        {
+          title: "Manage Recipients",
+          url: "/dashboard/recipients",
+        },
+        {
+          title: "Signing Requests",
+          url: "/dashboard/recipients/requests",
+        },
+      ],
+    },
+    {
+      title: "Settings",
+      url: "/dashboard/settings",
+      icon: Settings2,
+      badge: "Phase 7",
+      items: [
+        {
+          title: "Account",
+          url: "/dashboard/settings/account",
+        },
+        {
+          title: "Security",
+          url: "/dashboard/settings/security",
+        },
+      ],
+    },
+  ],
+}
+
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
+  return (
+    <Sidebar collapsible="icon" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <a href="/dashboard">
+                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <SquareArrowUpRight className="size-4" />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-medium">Comet</span>
+                </div>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <NavMain items={data.navMain} />
+      </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={user} />
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
+  )
+}

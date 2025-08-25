@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -12,9 +13,11 @@ export default function Home() {
           Secure document signing platform with PDF upload and electronic signatures
         </p>
         <div className="flex gap-4 justify-center">
-          <Button size="lg">Get Started</Button>
-          <Button variant="outline" size="lg">
-            Learn More
+          <Button size="lg" asChild>
+            <Link href="/auth/register">Get Started</Link>
+          </Button>
+          <Button variant="outline" size="lg" asChild>
+            <Link href="/auth/login">Sign In</Link>
           </Button>
         </div>
       </div>

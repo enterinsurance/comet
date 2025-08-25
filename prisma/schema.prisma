@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Authentication models for Better Auth integration
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  documents     Document[]
+  signatures    Signature[]
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("users")
+}
+
+model Account {
+  id                       String    @id @default(cuid())
+  userId                   String
+  accountId                String
+  providerId               String
+  accessToken              String?
+  refreshToken             String?
+  accessTokenExpiresAt     DateTime?
+  refreshTokenExpiresAt    DateTime?
+  scope                    String?
+  idToken                  String?
+  password                 String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@map("accounts")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
+// Document signing models
+model Document {
+  id          String            @id @default(cuid())
+  title       String
+  fileName    String
+  filePath    String            // Vercel Blob URL
+  fileSize    Int
+  mimeType    String            @default("application/pdf")
+  status      DocumentStatus    @default(DRAFT)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  createdById String
+
+  // Relations
+  createdBy         User                @relation(fields: [createdById], references: [id])
+  signatures        Signature[]
+  signingRequests   SigningRequest[]
+
+  @@map("documents")
+}
+
+model SigningRequest {
+  id         String               @id @default(cuid())
+  documentId String
+  email      String
+  name       String?
+  status     SigningRequestStatus @default(PENDING)
+  token      String               @unique // Secure token for accessing signing page
+  expiresAt  DateTime?
+  createdAt  DateTime             @default(now())
+  updatedAt  DateTime             @updatedAt
+
+  // Relations
+  document   Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  signatures Signature[]
+
+  @@map("signing_requests")
+}
+
+model Signature {
+  id               String    @id @default(cuid())
+  documentId       String
+  signingRequestId String?
+  userId           String?   // Optional - for authenticated users
+  x                Float     // X coordinate on PDF
+  y                Float     // Y coordinate on PDF
+  width            Float     // Signature width
+  height           Float     // Signature height
+  page             Int       // PDF page number (1-indexed)
+  signatureData    String    // Base64 encoded signature image
+  ipAddress        String?   // For audit trail
+  userAgent        String?   // For audit trail
+  createdAt        DateTime  @default(now())
+
+  // Relations
+  document       Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  signingRequest SigningRequest? @relation(fields: [signingRequestId], references: [id])
+  user           User?           @relation(fields: [userId], references: [id])
+
+  @@map("signatures")
+}
+
+// Enums
+enum DocumentStatus {
+  DRAFT
+  SENT
+  PARTIALLY_SIGNED
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum SigningRequestStatus {
+  PENDING
+  VIEWED
+  SIGNED
+  EXPIRED
+  DECLINED
+}
