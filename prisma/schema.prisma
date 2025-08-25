@@ -97,20 +97,52 @@ model Document {
   signatures        Signature[]
   signingRequests   SigningRequest[]
   signatureFields   SignatureField[]
+  invitations       DocumentInvitation[]
 
   @@map("documents")
 }
 
+model DocumentInvitation {
+  id               String               @id @default(cuid())
+  documentId       String
+  recipientEmail   String
+  recipientName    String
+  status           SigningRequestStatus @default(PENDING)
+  token            String               @unique // Secure token for accessing signing page
+  expiresAt        DateTime
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  signedAt         DateTime?            // When the document was signed
+  signatureUrl     String?              // URL to the signature image in Vercel Blob
+  signerName       String?              // Actual name provided during signing
+  signerTitle      String?              // Optional title provided during signing
+  signerNotes      String?              // Optional notes provided during signing
+  signerIpAddress  String?              // IP address for audit trail
+  signerUserAgent  String?              // User agent for audit trail
+
+  // Relations
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("document_invitations")
+}
+
 model SigningRequest {
-  id         String               @id @default(cuid())
-  documentId String
-  email      String
-  name       String?
-  status     SigningRequestStatus @default(PENDING)
-  token      String               @unique // Secure token for accessing signing page
-  expiresAt  DateTime?
-  createdAt  DateTime             @default(now())
-  updatedAt  DateTime             @updatedAt
+  id               String               @id @default(cuid())
+  documentId       String
+  email            String
+  name             String?
+  status           SigningRequestStatus @default(PENDING)
+  token            String               @unique // Secure token for accessing signing page
+  expiresAt        DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  signedAt         DateTime?            // When the document was signed
+  signatureUrl     String?              // URL to the signature image in Vercel Blob
+  signerName       String?              // Actual name provided during signing
+  signerTitle      String?              // Optional title provided during signing
+  signerNotes      String?              // Optional notes provided during signing
+  signerIpAddress  String?              // IP address for audit trail
+  signerUserAgent  String?              // User agent for audit trail
 
   // Relations
   document   Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -175,7 +207,7 @@ enum DocumentStatus {
 enum SigningRequestStatus {
   PENDING
   VIEWED
-  SIGNED
+  COMPLETED
   EXPIRED
   DECLINED
 }
