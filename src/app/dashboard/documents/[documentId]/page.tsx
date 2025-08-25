@@ -25,6 +25,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ProgressIndicator, DocumentSigningSteps, type ProgressStep } from "@/components/ui/progress-indicator"
+import { LoadingState, DocumentListSkeleton } from "@/components/ui/loading-state"
+import { DocumentErrorBoundary } from "@/components/ui/error-boundary"
 
 interface Document {
   id: string
@@ -150,10 +153,55 @@ export default function DocumentViewPage() {
     window.document.body.removeChild(link)
   }
 
+  // Calculate progress steps based on document status
+  const getProgressSteps = (): ProgressStep[] => {
+    if (!document) return DocumentSigningSteps
+
+    const steps = [...DocumentSigningSteps]
+    
+    // Step 1: Upload Document - always completed for existing documents
+    steps[0].status = "completed"
+    
+    // Step 2: Add Signature Fields - completed if document has fields or is SENT/PARTIALLY_SIGNED/COMPLETED
+    if (document.status !== "DRAFT") {
+      steps[1].status = "completed"
+    } else {
+      steps[1].status = "current"
+      return steps
+    }
+    
+    // Step 3: Add Recipients - completed if document is SENT or further
+    if (["SENT", "PARTIALLY_SIGNED", "COMPLETED"].includes(document.status)) {
+      steps[2].status = "completed"
+    } else {
+      steps[2].status = "current"
+      return steps
+    }
+    
+    // Step 4: Send Invitations - completed if document is SENT or further
+    if (["SENT", "PARTIALLY_SIGNED", "COMPLETED"].includes(document.status)) {
+      steps[3].status = "completed"
+    } else {
+      steps[3].status = "current" 
+      return steps
+    }
+    
+    // Step 5: Collect Signatures - completed if COMPLETED, current if PARTIALLY_SIGNED or SENT
+    if (document.status === "COMPLETED") {
+      steps[4].status = "completed"
+    } else if (["SENT", "PARTIALLY_SIGNED"].includes(document.status)) {
+      steps[4].status = "current"
+    }
+    
+    return steps
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-6 w-96" />
+        <div className="flex items-center justify-center py-8">
+          <LoadingState message="Loading document details..." size="lg" />
+        </div>
         <div className="grid gap-6 lg:grid-cols-4">
           <div className="lg:col-span-1">
             <Skeleton className="h-96 w-full" />
@@ -204,7 +252,8 @@ export default function DocumentViewPage() {
   }
 
   return (
-    <div className="space-y-6 h-[calc(100vh-8rem)]">
+    <DocumentErrorBoundary>
+      <div className="space-y-6 h-[calc(100vh-8rem)]">
       {/* Breadcrumb Navigation */}
       <Breadcrumb>
         <BreadcrumbList>
@@ -272,6 +321,24 @@ export default function DocumentViewPage() {
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Progress Indicator */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Document Progress</CardTitle>
+          <CardDescription>
+            Track the status of your document signing process
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ProgressIndicator 
+            steps={getProgressSteps()} 
+            orientation="horizontal"
+            showDescriptions={true}
+            className="py-4"
+          />
+        </CardContent>
+      </Card>
 
       {/* Document Layout */}
       <div className="grid gap-6 lg:grid-cols-4 h-full">
@@ -410,6 +477,7 @@ export default function DocumentViewPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </DocumentErrorBoundary>
   )
 }

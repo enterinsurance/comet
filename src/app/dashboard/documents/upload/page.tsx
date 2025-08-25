@@ -18,6 +18,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { useFileUpload } from "@/hooks/use-file-upload"
+import { useToastHelpers } from "@/components/ui/toast-provider"
+import { LoadingState, LoadingOverlay } from "@/components/ui/loading-state"
 
 interface UploadedDocument {
   id: string
@@ -31,6 +33,7 @@ interface UploadedDocument {
 
 export default function UploadDocumentPage() {
   const router = useRouter()
+  const toast = useToastHelpers()
   const [uploadedDocument, setUploadedDocument] = useState<UploadedDocument | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
@@ -38,14 +41,17 @@ export default function UploadDocumentPage() {
     onSuccess: (document) => {
       setUploadedDocument(document)
       setUploadError(null)
-      // Redirect to All Documents page after 2 seconds
+      toast.success("Document uploaded successfully!", "Your document is ready for signature fields.")
+      
+      // Redirect to the document details page after 2 seconds
       setTimeout(() => {
-        router.push("/dashboard/documents")
+        router.push(`/dashboard/documents/${document.id}`)
       }, 2000)
     },
     onError: (error) => {
       setUploadError(error)
       setUploadedDocument(null)
+      toast.error("Upload failed", error)
     },
   })
 
