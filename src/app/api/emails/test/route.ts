@@ -66,6 +66,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid email type" }, { status: 400 })
   } catch (error) {
     console.error("Test email error:", error)
+    console.error("Environment check:", {
+      RESEND_API_KEY: process.env.RESEND_API_KEY ? '[SET]' : '[NOT SET]',
+      EMAIL_FROM: process.env.EMAIL_FROM || '[NOT SET]'
+    })
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(

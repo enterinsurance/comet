@@ -66,10 +66,12 @@ export default function DashboardPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Button className="h-20 justify-start" variant="outline" disabled asChild>
-                <div className="flex flex-col items-start space-y-2">
+                <Link
+                  href="/dashboard/documents/upload"
+                  className="flex flex-col items-start space-y-2"
+                >
                   <div className="font-medium">Upload Document</div>
-                  <div className="text-sm text-muted-foreground">Coming in Phase 2</div>
-                </div>
+                </Link>
               </Button>
               <Button className="h-20 justify-start" variant="outline" asChild>
                 <Link href="/dashboard/documents" className="flex flex-col items-start space-y-2">

@@ -363,13 +363,30 @@ export default function DocumentViewPage() {
                 </div>
               )}
               
-              <Button variant="outline" size="sm" className="w-full justify-start" disabled>
-                <User className="h-4 w-4 mr-2" />
-                Send for Signing
-                <Badge variant="secondary" className="ml-auto">
-                  Phase 4
-                </Badge>
-              </Button>
+              {document.status === "SENT" && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const editorContainer = window.document.getElementById('document-editor')
+                    editorContainer?.scrollIntoView({ behavior: 'smooth' })
+                  }}
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Send for Signing
+                </Button>
+              )}
+              
+              {document.status === "DRAFT" && (
+                <Button variant="outline" size="sm" className="w-full justify-start" disabled>
+                  <User className="h-4 w-4 mr-2" />
+                  Send for Signing
+                  <Badge variant="secondary" className="ml-auto">
+                    Prepare First
+                  </Badge>
+                </Button>
+              )}
               
               <Button variant="outline" size="sm" className="w-full justify-start">
                 <Share2 className="h-4 w-4 mr-2" />

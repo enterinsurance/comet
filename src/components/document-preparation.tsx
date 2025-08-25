@@ -1,9 +1,10 @@
 "use client"
 
-import { AlertTriangle, CheckCircle, Eye, FileText, Send, Users } from "lucide-react"
+import { AlertTriangle, CheckCircle, Eye, FileText, Mail, Send, Users } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { DocumentEditor } from "@/components/document-editor"
+import { InvitationManagement } from "@/components/invitation-management"
 import { PDFViewer } from "@/components/pdf-viewer"
 import { PreparationConfirmation } from "@/components/preparation-confirmation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -252,7 +253,7 @@ export function DocumentPreparation({
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="edit" className="flex items-center space-x-2">
             <FileText className="h-4 w-4" />
             <span>Edit Fields</span>
@@ -260,6 +261,10 @@ export function DocumentPreparation({
           <TabsTrigger value="preview" className="flex items-center space-x-2">
             <Eye className="h-4 w-4" />
             <span>Preview</span>
+          </TabsTrigger>
+          <TabsTrigger value="send" className="flex items-center space-x-2" disabled={currentStatus !== "SENT"}>
+            <Mail className="h-4 w-4" />
+            <span>Send for Signing{currentStatus !== "SENT" ? ` (${currentStatus})` : ""}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -339,6 +344,17 @@ export function DocumentPreparation({
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Send for Signing Tab */}
+        <TabsContent value="send" className="space-y-4">
+          <InvitationManagement
+            documentId={documentId}
+            documentTitle={documentTitle}
+            documentStatus={currentStatus}
+            signatureFields={signatureFields}
+            onStatusChange={onStatusChange}
+          />
         </TabsContent>
       </Tabs>
 

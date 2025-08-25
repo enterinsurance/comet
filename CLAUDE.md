@@ -78,9 +78,9 @@ src/
 - ✅ **Phase 2.2**: PDF viewing with react-pdf
 - ✅ **Phase 3.1**: Interactive PDF Editor with signature field placement
 - ✅ **Phase 3.2**: Document preparation workflow with validation
-- ✅ **Phase 4.1**: Email system setup with Resend and React Email - **NEXT**
-- ⏳ **Phase 4.2**: Invitation management interface
-- ⏳ **Phase 4**: Complete email integration with Resend
+- ✅ **Phase 4.1**: Email system setup with Resend and React Email
+- ✅ **Phase 4.2**: Invitation management interface - **NEXT**
+- ✅ **Phase 4**: Complete email integration with Resend
 - ⏳ **Phase 5**: Signature capture workflow
 - ⏳ **Phase 6**: Document finalization
 - ⏳ **Phase 7**: Security hardening and UX polish
@@ -107,8 +107,8 @@ BLOB_READ_WRITE_TOKEN=""
 
 # Email (Phase 4)
 RESEND_API_KEY=""
-EMAIL_FROM="Comet Document Signing <noreply@comet-docs.com>"
-EMAIL_REPLY_TO="support@comet-docs.com"
+EMAIL_FROM="Comet Document Signing <noreply@enterinsurance.com>"
+EMAIL_REPLY_TO="support@enterinsurance.com"
 ```
 
 ## Deployment
