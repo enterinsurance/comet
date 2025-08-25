@@ -52,7 +52,6 @@ const data = {
       title: "Recipients",
       url: "/dashboard/recipients",
       icon: Users,
-      badge: "Phase 4",
       items: [
         {
           title: "Manage Recipients",
