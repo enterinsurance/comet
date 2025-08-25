@@ -268,9 +268,11 @@ export default function AllDocumentsPage() {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
+                    <Button variant="outline" size="sm" asChild>
+                      <Link href={`/dashboard/documents/${doc.id}`}>
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Link>
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

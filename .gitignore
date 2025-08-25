@@ -50,4 +50,6 @@ temp/
 # TypeScript
 *.tsbuildinfo
 
+# Generated files
 /generated/prisma
+/public/pdf.worker.min.mjs

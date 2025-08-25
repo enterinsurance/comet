@@ -3,6 +3,57 @@ import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ documentId: string }> }
+) {
+  try {
+    // Check authentication
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    })
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    }
+
+    const { documentId } = await params
+
+    // Find the document and ensure it belongs to the user
+    const document = await prisma.document.findUnique({
+      where: {
+        id: documentId,
+        createdById: session.user.id, // Ensure user owns the document
+      },
+      select: {
+        id: true,
+        title: true,
+        fileName: true,
+        fileSize: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        filePath: true,
+        _count: {
+          select: {
+            signatures: true,
+            signingRequests: true,
+          },
+        },
+      },
+    })
+
+    if (!document) {
+      return NextResponse.json({ error: "Document not found or access denied" }, { status: 404 })
+    }
+
+    return NextResponse.json(document)
+  } catch (error) {
+    console.error("Fetch document error:", error)
+    return NextResponse.json({ error: "Failed to fetch document" }, { status: 500 })
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ documentId: string }> }
