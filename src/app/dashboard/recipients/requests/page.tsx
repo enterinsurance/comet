@@ -85,6 +85,13 @@ export default function SigningRequestsPage() {
   const [allRequests, setAllRequests] = useState<SigningRequest[]>([])
   const [filteredRequests, setFilteredRequests] = useState<SigningRequest[]>([])
   const [documents, setDocuments] = useState<Document[]>([])
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    viewed: 0,
+    completed: 0,
+    expired: 0,
+  })
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
@@ -97,37 +104,40 @@ export default function SigningRequestsPage() {
 
     const fetchData = async () => {
       try {
-        // Fetch documents
-        const documentsResponse = await fetch("/api/documents")
-        const documentsData = await documentsResponse.json()
+        const response = await fetch("/api/dashboard/recipients-stats")
+        const data = await response.json()
 
-        if (documentsData.success) {
-          const docsWithRequests = documentsData.documents.filter(
-            (doc: Document) => doc._count.signingRequests > 0
-          )
-          setDocuments(docsWithRequests)
-
-          // Fetch all signing requests
-          const allRequestsPromises = docsWithRequests.map(async (doc: Document) => {
-            const response = await fetch(`/api/documents/${doc.id}/signing-requests`)
-            const data = await response.json()
-
-            return (
-              data.signingRequests?.map((req: any) => ({
-                ...req,
-                document: {
-                  id: doc.id,
-                  title: doc.title,
-                  status: doc.status,
-                },
-              })) || []
-            )
+        if (data.success) {
+          setAllRequests(data.allRequests)
+          setFilteredRequests(data.allRequests)
+          
+          // Extract unique documents for the filter dropdown
+          const uniqueDocs = data.allRequests
+            .reduce((acc: Document[], request: any) => {
+              const existingDoc = acc.find(d => d.id === request.document.id)
+              if (!existingDoc) {
+                acc.push({
+                  id: request.document.id,
+                  title: request.document.title,
+                  status: request.document.status,
+                  _count: { signingRequests: 1 }
+                })
+              } else {
+                existingDoc._count.signingRequests++
+              }
+              return acc
+            }, [])
+          
+          setDocuments(uniqueDocs)
+          
+          // Set statistics from API
+          setStats({
+            total: data.stats.totalRequests,
+            pending: data.stats.pendingRequests,
+            viewed: data.stats.viewedRequests,
+            completed: data.stats.completedRequests,
+            expired: data.stats.expiredRequests,
           })
-
-          const allRequestsArrays = await Promise.all(allRequestsPromises)
-          const allRequestsFlat = allRequestsArrays.flat()
-          setAllRequests(allRequestsFlat)
-          setFilteredRequests(allRequestsFlat)
         }
       } catch (error) {
         console.error("Failed to fetch signing requests:", error)
@@ -269,17 +279,6 @@ export default function SigningRequestsPage() {
     }
   }
 
-  const getStats = () => {
-    return {
-      total: allRequests.length,
-      pending: allRequests.filter((r) => r.status === "PENDING" && !r.isExpired).length,
-      viewed: allRequests.filter((r) => r.status === "VIEWED" && !r.isExpired).length,
-      completed: allRequests.filter((r) => r.status === "COMPLETED").length,
-      expired: allRequests.filter((r) => r.isExpired).length,
-    }
-  }
-
-  const stats = getStats()
 
   if (isLoading) {
     return (

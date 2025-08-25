@@ -45,18 +45,24 @@ interface RecentSigningRequest {
 
 interface DashboardStats {
   totalRecipients: number
+  totalRequests: number
   pendingRequests: number
+  viewedRequests: number
   completedRequests: number
-  totalDocuments: number
+  expiredRequests: number
+  documentsWithRequests: number
 }
 
 export default function RecipientsPage() {
   const { data: session } = useSession()
   const [stats, setStats] = useState<DashboardStats>({
     totalRecipients: 0,
+    totalRequests: 0,
     pendingRequests: 0,
+    viewedRequests: 0,
     completedRequests: 0,
-    totalDocuments: 0,
+    expiredRequests: 0,
+    documentsWithRequests: 0,
   })
   const [recentRequests, setRecentRequests] = useState<RecentSigningRequest[]>([])
   const [documentsWithRequests, setDocumentsWithRequests] = useState<Document[]>([])
@@ -67,67 +73,34 @@ export default function RecipientsPage() {
 
     const fetchData = async () => {
       try {
-        // Fetch documents with signing requests
-        const documentsResponse = await fetch("/api/documents")
-        const documentsData = await documentsResponse.json()
+        const response = await fetch("/api/dashboard/recipients-stats")
+        const data = await response.json()
 
-        if (documentsData.success) {
-          const docsWithRequests = documentsData.documents.filter(
-            (doc: Document) => doc._count.signingRequests > 0
-          )
-          setDocumentsWithRequests(docsWithRequests)
-
-          // Calculate stats from documents
-          let totalRequests = 0
-          let pendingCount = 0
-          let completedCount = 0
-          const uniqueEmails = new Set<string>()
-
-          // For each document, fetch its signing requests to get detailed stats
-          for (const doc of docsWithRequests) {
-            const requestsResponse = await fetch(`/api/documents/${doc.id}/signing-requests`)
-            const requestsData = await requestsResponse.json()
-
-            if (requestsData.signingRequests) {
-              requestsData.signingRequests.forEach((req: any) => {
-                uniqueEmails.add(req.email.toLowerCase())
-                totalRequests++
-
-                if (req.status === "PENDING" || req.status === "VIEWED") {
-                  pendingCount++
-                } else if (req.status === "COMPLETED") {
-                  completedCount++
-                }
-              })
-            }
-          }
-
-          setStats({
-            totalRecipients: uniqueEmails.size,
-            pendingRequests: pendingCount,
-            completedRequests: completedCount,
-            totalDocuments: docsWithRequests.length,
-          })
-
-          // Get recent requests from the first few documents
-          const recentRequestsPromises = docsWithRequests.slice(0, 3).map(async (doc: Document) => {
-            const response = await fetch(`/api/documents/${doc.id}/signing-requests`)
-            const data = await response.json()
-
-            return (
-              data.signingRequests?.map((req: any) => ({
-                ...req,
-                document: { title: doc.title },
-              })) || []
-            )
-          })
-
-          const allRecentRequests = (await Promise.all(recentRequestsPromises))
-            .flat()
-            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        if (data.success) {
+          setStats(data.stats)
+          setRecentRequests(data.recentRequests)
+          
+          // For documents with requests display, we can use the stats
+          // Create mock document objects for display purposes
+          const mockDocs = data.recentRequests
+            .reduce((acc: Document[], request: any) => {
+              const existingDoc = acc.find(d => d.id === request.document.id)
+              if (!existingDoc) {
+                acc.push({
+                  id: request.document.id,
+                  title: request.document.title,
+                  status: request.document.status,
+                  createdAt: request.createdAt,
+                  _count: { signingRequests: 1 }
+                })
+              } else {
+                existingDoc._count.signingRequests++
+              }
+              return acc
+            }, [])
             .slice(0, 5)
-
-          setRecentRequests(allRecentRequests)
+          
+          setDocumentsWithRequests(mockDocs)
         }
       } catch (error) {
         console.error("Failed to fetch recipients data:", error)
@@ -235,7 +208,7 @@ export default function RecipientsPage() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalDocuments}</div>
+            <div className="text-2xl font-bold">{stats.documentsWithRequests}</div>
             <p className="text-xs text-muted-foreground">With signing requests</p>
           </CardContent>
         </Card>

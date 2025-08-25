@@ -28,6 +28,15 @@ interface DocumentsResponse {
     hasNextPage: boolean
     hasPreviousPage: boolean
   }
+  stats: {
+    total: number
+    draft: number
+    sent: number
+    partiallySigned: number
+    completed: number
+    expired: number
+    cancelled: number
+  }
 }
 
 interface UseDocumentsOptions {
@@ -54,6 +63,15 @@ export function useDocuments({
     hasNextPage: false,
     hasPreviousPage: false,
   })
+  const [stats, setStats] = useState({
+    total: 0,
+    draft: 0,
+    sent: 0,
+    partiallySigned: 0,
+    completed: 0,
+    expired: 0,
+    cancelled: 0,
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -79,6 +97,7 @@ export function useDocuments({
       const data = (await response.json()) as DocumentsResponse
       setDocuments(data.documents)
       setPagination(data.pagination)
+      setStats(data.stats)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to fetch documents"
       setError(errorMessage)
@@ -160,16 +179,8 @@ export function useDocuments({
 
   // Statistics helpers
   const getDocumentStats = useCallback(() => {
-    return {
-      total: pagination.totalCount,
-      draft: documents.filter((doc) => doc.status === "DRAFT").length,
-      sent: documents.filter((doc) => doc.status === "SENT").length,
-      partiallySigncd: documents.filter((doc) => doc.status === "PARTIALLY_SIGNED").length,
-      completed: documents.filter((doc) => doc.status === "COMPLETED").length,
-      expired: documents.filter((doc) => doc.status === "EXPIRED").length,
-      cancelled: documents.filter((doc) => doc.status === "CANCELLED").length,
-    }
-  }, [documents, pagination.totalCount])
+    return stats
+  }, [stats])
 
   return {
     documents,
