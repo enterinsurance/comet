@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { PDFViewer } from "@/components/pdf-viewer"
+import { DocumentEditor } from "@/components/document-editor"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -249,7 +249,12 @@ export default function DocumentViewPage() {
                 <Share2 className="h-4 w-4 mr-2" />
                 Share Document
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const editorContainer = window.document.getElementById('document-editor')
+                  editorContainer?.scrollIntoView({ behavior: 'smooth' })
+                }}
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 Add Signature Fields
               </DropdownMenuItem>
@@ -328,12 +333,18 @@ export default function DocumentViewPage() {
               <CardDescription>What you can do with this document</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full justify-start" disabled>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="w-full justify-start"
+                onClick={() => {
+                  // The DocumentEditor component will handle this
+                  const editorContainer = window.document.getElementById('document-editor')
+                  editorContainer?.scrollIntoView({ behavior: 'smooth' })
+                }}
+              >
                 <FileText className="h-4 w-4 mr-2" />
                 Add Signature Fields
-                <Badge variant="secondary" className="ml-auto">
-                  Phase 3
-                </Badge>
               </Button>
               <Button variant="outline" size="sm" className="w-full justify-start" disabled>
                 <User className="h-4 w-4 mr-2" />
@@ -352,15 +363,13 @@ export default function DocumentViewPage() {
 
         {/* PDF Viewer */}
         <div className="lg:col-span-3">
-          <Card className="h-full">
-            <CardContent className="p-0 h-full">
-              <PDFViewer
-                fileUrl={document.filePath}
-                fileName={document.fileName}
-                className="h-full"
-              />
-            </CardContent>
-          </Card>
+          <div id="document-editor">
+            <DocumentEditor
+              documentId={documentId}
+              fileUrl={document.filePath}
+              fileName={document.fileName}
+            />
+          </div>
         </div>
       </div>
     </div>

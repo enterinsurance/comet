@@ -27,9 +27,11 @@ export interface SignatureField {
   width: number
   height: number
   page: number
-  signerEmail: string
-  signed: boolean
-  signatureData?: string
+  label?: string
+  required: boolean
+  signerEmail?: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface Invitation {

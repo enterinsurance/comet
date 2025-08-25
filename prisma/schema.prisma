@@ -96,6 +96,7 @@ model Document {
   createdBy         User                @relation(fields: [createdById], references: [id])
   signatures        Signature[]
   signingRequests   SigningRequest[]
+  signatureFields   SignatureField[]
 
   @@map("documents")
 }
@@ -116,6 +117,26 @@ model SigningRequest {
   signatures Signature[]
 
   @@map("signing_requests")
+}
+
+model SignatureField {
+  id          String   @id @default(cuid())
+  documentId  String
+  x           Float    // X coordinate on PDF (0-1 range)
+  y           Float    // Y coordinate on PDF (0-1 range)
+  width       Float    // Field width (0-1 range)
+  height      Float    // Field height (0-1 range)
+  page        Int      // PDF page number (1-indexed)
+  label       String?  // Optional label for the field
+  required    Boolean  @default(true)
+  signerEmail String?  // Optional - specific signer email
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@map("signature_fields")
 }
 
 model Signature {
