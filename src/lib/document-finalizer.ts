@@ -1,4 +1,5 @@
 import { put } from "@vercel/blob"
+import { sendCompletionNotifications } from "@/lib/completion-notifications"
 import {
   generateCompletedDocumentFilename,
   generateSignedPdf,
@@ -115,10 +116,14 @@ export async function finalizeDocumentInternal(documentId: string): Promise<{
 
     // Upload the final signed document to Vercel Blob
     const filename = generateCompletedDocumentFilename(document.title, documentId)
-    const signedDocumentBlob = await put(`completed-documents/${filename}`, signedPdfBytes, {
-      contentType: "application/pdf",
-      access: "public",
-    })
+    const signedDocumentBlob = await put(
+      `completed-documents/${filename}`,
+      Buffer.from(signedPdfBytes),
+      {
+        contentType: "application/pdf",
+        access: "public",
+      }
+    )
 
     // Update document with completed document URL and finalization timestamp
     await prisma.document.update({
@@ -129,6 +134,23 @@ export async function finalizeDocumentInternal(documentId: string): Promise<{
         updatedAt: new Date(),
       },
     })
+
+    // Send completion notifications to all parties
+    try {
+      // Get all invitations for notification
+      const allInvitations = await prisma.documentInvitation.findMany({
+        where: { documentId },
+      })
+
+      await sendCompletionNotifications(documentId, allInvitations, document)
+      console.log(`Completion notifications sent for internally finalized document ${documentId}`)
+    } catch (notificationError) {
+      console.error(
+        "Error sending completion notifications during internal finalization:",
+        notificationError
+      )
+      // Don't fail the finalization if notification fails
+    }
 
     return {
       success: true,

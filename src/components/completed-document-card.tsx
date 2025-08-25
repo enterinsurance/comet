@@ -36,23 +36,39 @@ export function CompletedDocumentCard({ document, signatures = [] }: CompletedDo
 
     setIsDownloading(true)
     try {
-      const response = await fetch(document.completedDocumentUrl)
-      if (!response.ok) throw new Error("Download failed")
+      // Use the secure download API endpoint
+      const response = await fetch(`/api/documents/${document.id}/download`)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Download failed" }))
+        throw new Error(errorData.error || "Download failed")
+      }
+
+      // Get the filename from Content-Disposition header or use fallback
+      const contentDisposition = response.headers.get("Content-Disposition")
+      let filename = `${document.title}_signed.pdf`
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="([^"]*)"/)
+        if (match) {
+          filename = match[1]
+        }
+      }
 
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
+      const a = globalThis.document.createElement("a")
       a.href = url
-      a.download = `${document.title}_signed.pdf`
-      document.body.appendChild(a)
+      a.download = filename
+      globalThis.document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      globalThis.document.body.removeChild(a)
 
       toast.success("Document downloaded successfully")
     } catch (error) {
       console.error("Download error:", error)
-      toast.error("Failed to download document")
+      toast.error(error instanceof Error ? error.message : "Failed to download document")
     } finally {
       setIsDownloading(false)
     }
@@ -118,9 +134,9 @@ export function CompletedDocumentCard({ document, signatures = [] }: CompletedDo
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Signatures:</h4>
             <div className="space-y-1">
-              {signatures.map((signature, index) => (
+              {signatures.map((signature) => (
                 <div
-                  key={index}
+                  key={`${signature.signerName}-${signature.signedAt}`}
                   className="flex items-center justify-between text-xs bg-white rounded p-2 border"
                 >
                   <span className="font-medium">{signature.signerName}</span>

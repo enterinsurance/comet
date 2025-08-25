@@ -75,7 +75,7 @@ export async function GET(
         total: signingRequests.length,
         pending: signingRequests.filter((sr) => sr.status === "PENDING").length,
         viewed: signingRequests.filter((sr) => sr.status === "VIEWED").length,
-        signed: signingRequests.filter((sr) => sr.status === "SIGNED").length,
+        signed: signingRequests.filter((sr) => sr.status === "COMPLETED").length,
         expired: requestsWithStatus.filter((sr) => sr.isExpired).length,
         declined: signingRequests.filter((sr) => sr.status === "DECLINED").length,
         totalSignatures: signingRequests.reduce((sum, sr) => sum + sr.signatures.length, 0),
@@ -124,9 +124,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Signing request not found" }, { status: 404 })
     }
 
-    // Don't allow deletion of signed requests
-    if (signingRequest.status === "SIGNED") {
-      return NextResponse.json({ error: "Cannot delete a signed request" }, { status: 400 })
+    // Don't allow deletion of completed requests
+    if (signingRequest.status === "COMPLETED") {
+      return NextResponse.json({ error: "Cannot delete a completed request" }, { status: 400 })
     }
 
     // Delete the signing request (will cascade delete signatures)

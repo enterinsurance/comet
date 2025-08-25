@@ -3,7 +3,10 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: NextRequest, { params }: { params: { documentId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ documentId: string }> }
+) {
   try {
     // Check authentication
     const session = await auth.api.getSession({
@@ -14,7 +17,7 @@ export async function GET(request: NextRequest, { params }: { params: { document
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
-    const { documentId } = params
+    const { documentId } = await params
 
     // Verify document ownership
     const document = await prisma.document.findUnique({

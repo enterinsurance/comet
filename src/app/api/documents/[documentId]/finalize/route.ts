@@ -2,6 +2,7 @@ import { put } from "@vercel/blob"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { sendCompletionNotifications } from "@/lib/completion-notifications"
 import {
   generateCompletedDocumentFilename,
   generateSignedPdf,
@@ -9,7 +10,10 @@ import {
 } from "@/lib/pdf-generator"
 import { prisma } from "@/lib/prisma"
 
-export async function POST(request: NextRequest, { params }: { params: { documentId: string } }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ documentId: string }> }
+) {
   try {
     // Check authentication
     const session = await auth.api.getSession({
@@ -20,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: { documen
       return NextResponse.json({ error: "Authentication required" }, { status: 401 })
     }
 
-    const { documentId } = params
+    const { documentId } = await params
 
     // Get document with all signatures and invitations
     const document = await prisma.document.findUnique({
@@ -126,10 +130,14 @@ export async function POST(request: NextRequest, { params }: { params: { documen
 
     // Upload the final signed document to Vercel Blob
     const filename = generateCompletedDocumentFilename(document.title, documentId)
-    const signedDocumentBlob = await put(`completed-documents/${filename}`, signedPdfBytes, {
-      contentType: "application/pdf",
-      access: "public",
-    })
+    const signedDocumentBlob = await put(
+      `completed-documents/${filename}`,
+      Buffer.from(signedPdfBytes),
+      {
+        contentType: "application/pdf",
+        access: "public",
+      }
+    )
 
     // Update document status and store the final document URL
     const updatedDocument = await prisma.document.update({
@@ -141,6 +149,20 @@ export async function POST(request: NextRequest, { params }: { params: { documen
         updatedAt: new Date(),
       },
     })
+
+    // Send completion notifications to all parties
+    try {
+      // Get all invitations for notification
+      const allInvitations = await prisma.documentInvitation.findMany({
+        where: { documentId },
+      })
+
+      await sendCompletionNotifications(documentId, allInvitations, document)
+      console.log(`Completion notifications sent for manually finalized document ${documentId}`)
+    } catch (notificationError) {
+      console.error("Error sending completion notifications:", notificationError)
+      // Don't fail the finalization if notification fails
+    }
 
     return NextResponse.json({
       success: true,

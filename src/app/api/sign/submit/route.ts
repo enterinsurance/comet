@@ -1,6 +1,7 @@
 import { put } from "@vercel/blob"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+import { sendCompletionNotifications } from "@/lib/completion-notifications"
 import { prisma } from "@/lib/prisma"
 import {
   createSignatureAudit,
@@ -117,8 +118,18 @@ export async function POST(request: NextRequest) {
         // Don't fail the signature submission if finalization fails
       }
 
-      // TODO: Send completion notification emails to all parties
-      // This will be implemented in Phase 6.2
+      // Send completion notifications to all parties
+      try {
+        await sendCompletionNotifications(
+          invitation.documentId,
+          allInvitations,
+          invitation.document
+        )
+        console.log(`Completion notifications sent for document ${invitation.documentId}`)
+      } catch (notificationError) {
+        console.error("Error sending completion notifications:", notificationError)
+        // Don't fail the signature submission if notification fails
+      }
     }
 
     return NextResponse.json({
