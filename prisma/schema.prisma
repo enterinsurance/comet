@@ -81,16 +81,18 @@ model Verification {
 
 // Document signing models
 model Document {
-  id          String            @id @default(cuid())
-  title       String
-  fileName    String
-  filePath    String            // Vercel Blob URL
-  fileSize    Int
-  mimeType    String            @default("application/pdf")
-  status      DocumentStatus    @default(DRAFT)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  createdById String
+  id                    String            @id @default(cuid())
+  title                 String
+  fileName              String
+  filePath              String            // Original Vercel Blob URL
+  fileSize              Int
+  mimeType              String            @default("application/pdf")
+  status                DocumentStatus    @default(DRAFT)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  createdById           String
+  completedDocumentUrl  String?           // Final signed document URL
+  finalizedAt           DateTime?         // When document was finalized
 
   // Relations
   createdBy         User                @relation(fields: [createdById], references: [id])

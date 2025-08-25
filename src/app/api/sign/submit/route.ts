@@ -99,12 +99,23 @@ export async function POST(request: NextRequest) {
 
     const allCompleted = allInvitations.every((inv) => inv.status === "COMPLETED")
 
-    // If all signatures are collected, update document status
+    // If all signatures are collected, update document status and trigger finalization
     if (allCompleted) {
       await prisma.document.update({
         where: { id: invitation.documentId },
         data: { status: "COMPLETED" },
       })
+
+      // Trigger automatic PDF finalization in the background
+      // We'll create an internal finalize function to avoid authentication issues
+      try {
+        const { finalizeDocumentInternal } = await import("@/lib/document-finalizer")
+        await finalizeDocumentInternal(invitation.documentId)
+        console.log(`Document ${invitation.documentId} finalized successfully`)
+      } catch (finalizationError) {
+        console.error("Error finalizing document:", finalizationError)
+        // Don't fail the signature submission if finalization fails
+      }
 
       // TODO: Send completion notification emails to all parties
       // This will be implemented in Phase 6.2

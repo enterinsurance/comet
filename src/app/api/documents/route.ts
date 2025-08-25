@@ -51,10 +51,13 @@ export async function GET(request: NextRequest) {
           createdAt: true,
           updatedAt: true,
           filePath: true,
+          completedDocumentUrl: true,
+          finalizedAt: true,
           _count: {
             select: {
               signatures: true,
               signingRequests: true,
+              invitations: true,
             },
           },
         },
