@@ -37,7 +37,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useSession } from "@/lib/auth-client"
 
@@ -135,7 +142,7 @@ export default function SigningRequestsPage() {
 
   // Apply filters and sorting
   useEffect(() => {
-    let filtered = allRequests.filter((request) => {
+    const filtered = allRequests.filter((request) => {
       // Search filter
       const matchesSearch =
         searchTerm === "" ||
@@ -150,8 +157,7 @@ export default function SigningRequestsPage() {
         (statusFilter !== "expired" && request.status.toLowerCase() === statusFilter)
 
       // Document filter
-      const matchesDocument =
-        documentFilter === "all" || request.document.id === documentFilter
+      const matchesDocument = documentFilter === "all" || request.document.id === documentFilter
 
       return matchesSearch && matchesStatus && matchesDocument
     })
@@ -217,10 +223,8 @@ export default function SigningRequestsPage() {
       )
     }
 
-    const variant = 
-      status === "COMPLETED" ? "default" :
-      status === "VIEWED" ? "secondary" :
-      "outline"
+    const variant =
+      status === "COMPLETED" ? "default" : status === "VIEWED" ? "secondary" : "outline"
 
     return (
       <Badge variant={variant} className="text-xs">
@@ -381,7 +385,10 @@ export default function SigningRequestsPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => setStatusFilter(value as StatusFilter)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -414,11 +421,14 @@ export default function SigningRequestsPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Sort</label>
-              <Select value={`${sortField}-${sortDirection}`} onValueChange={(value) => {
-                const [field, direction] = value.split('-') as [SortField, SortDirection]
-                setSortField(field)
-                setSortDirection(direction)
-              }}>
+              <Select
+                value={`${sortField}-${sortDirection}`}
+                onValueChange={(value) => {
+                  const [field, direction] = value.split("-") as [SortField, SortDirection]
+                  setSortField(field)
+                  setSortDirection(direction)
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -439,12 +449,8 @@ export default function SigningRequestsPage() {
       {/* Requests Table */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Signing Requests ({filteredRequests.length})
-          </CardTitle>
-          <CardDescription>
-            All signing invitations sent across your documents
-          </CardDescription>
+          <CardTitle>Signing Requests ({filteredRequests.length})</CardTitle>
+          <CardDescription>All signing invitations sent across your documents</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredRequests.length > 0 ? (
@@ -485,13 +491,9 @@ export default function SigningRequestsPage() {
                     <TableRow key={request.id}>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">
-                            {request.name || request.email}
-                          </div>
+                          <div className="font-medium">{request.name || request.email}</div>
                           {request.name && (
-                            <div className="text-sm text-muted-foreground">
-                              {request.email}
-                            </div>
+                            <div className="text-sm text-muted-foreground">{request.email}</div>
                           )}
                         </div>
                       </TableCell>
@@ -530,14 +532,16 @@ export default function SigningRequestsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() => copySigningUrl(request.signingUrl)}
-                            >
+                            <DropdownMenuItem onClick={() => copySigningUrl(request.signingUrl)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Copy Signing URL
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <a href={request.signingUrl} target="_blank" rel="noopener noreferrer">
+                              <a
+                                href={request.signingUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 Open Signing Page
                               </a>
@@ -552,7 +556,9 @@ export default function SigningRequestsPage() {
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() => handleDeleteRequest(request.id, request.document.id)}
+                                  onClick={() =>
+                                    handleDeleteRequest(request.id, request.document.id)
+                                  }
                                   className="text-red-600"
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
@@ -579,9 +585,7 @@ export default function SigningRequestsPage() {
               </p>
               {allRequests.length === 0 && (
                 <Button asChild>
-                  <Link href="/dashboard/documents">
-                    Upload a Document
-                  </Link>
+                  <Link href="/dashboard/documents">Upload a Document</Link>
                 </Button>
               )}
             </div>

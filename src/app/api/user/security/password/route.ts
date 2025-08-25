@@ -1,9 +1,14 @@
+import { hash, verify } from "@node-rs/argon2"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { hash, verify } from "@node-rs/argon2"
 import { z } from "zod"
+import {
+  AuditEventType,
+  AuditSeverity,
+  extractRequestMetadata,
+  logAuditEvent,
+} from "@/lib/audit-logger"
 import { auth } from "@/lib/auth"
-import { logAuditEvent, AuditEventType, AuditSeverity, extractRequestMetadata } from "@/lib/audit-logger"
 import { prisma } from "@/lib/prisma"
 import { checkRateLimit, createRateLimitHeaders, createRateLimitResponse } from "@/lib/rate-limit"
 
@@ -42,9 +47,12 @@ export async function PUT(request: NextRequest) {
     })
 
     if (!account?.password) {
-      return NextResponse.json({ 
-        error: "No password set for this account or account uses social login" 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "No password set for this account or account uses social login",
+        },
+        { status: 400 }
+      )
     }
 
     // Verify current password

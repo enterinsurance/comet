@@ -3,10 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 // CORS configuration
 const CORS_CONFIG = {
   // Allow specific origins in production
-  allowedOrigins: [
-    process.env.DOMAIN,
-    process.env.ORIGIN
-  ],
+  allowedOrigins: [process.env.DOMAIN, process.env.ORIGIN],
 
   // Allowed HTTP methods
   allowedMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],

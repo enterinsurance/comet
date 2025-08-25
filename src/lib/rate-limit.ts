@@ -2,59 +2,78 @@ import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
 import { headers } from "next/headers"
 
-// Initialize Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
-})
+// Check if Redis configuration is available
+const isRedisConfigured = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
 
-// Create rate limiters for different endpoints
-export const rateLimiters = {
-  // General API endpoints - 100 requests per 10 minutes
-  api: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(100, "10 m"),
-    analytics: true,
-    prefix: "@upstash/ratelimit:api",
-  }),
+// Initialize Redis client only if configured
+const redis = isRedisConfigured
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+  : null
 
-  // Authentication endpoints - 5 requests per 5 minutes
-  auth: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(5, "5 m"),
-    analytics: true,
-    prefix: "@upstash/ratelimit:auth",
-  }),
+// Create rate limiters for different endpoints (only if Redis is configured)
+export const rateLimiters =
+  isRedisConfigured && redis
+    ? {
+        // General API endpoints - 100 requests per 10 minutes
+        api: new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(100, "10 m"),
+          analytics: true,
+          prefix: "@upstash/ratelimit:api",
+        }),
 
-  // File upload - 20 requests per hour
-  upload: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(20, "1 h"),
-    analytics: true,
-    prefix: "@upstash/ratelimit:upload",
-  }),
+        // Authentication endpoints - 5 requests per 5 minutes
+        auth: new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(5, "5 m"),
+          analytics: true,
+          prefix: "@upstash/ratelimit:auth",
+        }),
 
-  // Email sending - 10 requests per hour
-  email: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(10, "1 h"),
-    analytics: true,
-    prefix: "@upstash/ratelimit:email",
-  }),
+        // File upload - 20 requests per hour
+        upload: new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(20, "1 h"),
+          analytics: true,
+          prefix: "@upstash/ratelimit:upload",
+        }),
 
-  // Document signing - 50 requests per hour
-  signing: new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(50, "1 h"),
-    analytics: true,
-    prefix: "@upstash/ratelimit:signing",
-  }),
-}
+        // Email sending - 10 requests per hour
+        email: new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(10, "1 h"),
+          analytics: true,
+          prefix: "@upstash/ratelimit:email",
+        }),
 
-export type RateLimitType = keyof typeof rateLimiters
+        // Document signing - 50 requests per hour
+        signing: new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(50, "1 h"),
+          analytics: true,
+          prefix: "@upstash/ratelimit:signing",
+        }),
+      }
+    : null
+
+export type RateLimitType = "api" | "auth" | "upload" | "email" | "signing"
 
 export async function checkRateLimit(type: RateLimitType, identifier?: string) {
   try {
+    // If Redis is not configured, always allow requests
+    if (!isRedisConfigured || !rateLimiters) {
+      return {
+        success: true,
+        limit: 1000,
+        reset: 0,
+        remaining: 999,
+        identifier: identifier || "development",
+      }
+    }
+
     let id = identifier
     if (!id) {
       const headersList = await headers()
@@ -72,11 +91,12 @@ export async function checkRateLimit(type: RateLimitType, identifier?: string) {
     }
   } catch (error) {
     console.error("Rate limiting error:", error)
+    // Fallback to allowing requests if rate limiting fails
     return {
       success: true,
-      limit: 0,
+      limit: 1000,
       reset: 0,
-      remaining: 0,
+      remaining: 999,
       identifier: identifier || "unknown",
     }
   }

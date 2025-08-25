@@ -15,7 +15,7 @@ import {
   Trash2,
   Zap,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -39,7 +39,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useSession } from "@/lib/auth-client"
 
@@ -88,7 +95,12 @@ export default function SecurityPage() {
   const [eventTimeRange, setEventTimeRange] = useState("last7d")
   const [eventFilter, setEventFilter] = useState("all")
   const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false)
-  
+
+  // Generate unique IDs for form fields
+  const currentPasswordId = useId()
+  const newPasswordId = useId()
+  const confirmPasswordId = useId()
+
   // Password change form
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -101,7 +113,9 @@ export default function SecurityPage() {
     const fetchSecurityData = async () => {
       try {
         // Fetch security events
-        const eventsResponse = await fetch(`/api/user/security/events?range=${eventTimeRange}&filter=${eventFilter}`)
+        const eventsResponse = await fetch(
+          `/api/user/security/events?range=${eventTimeRange}&filter=${eventFilter}`
+        )
         if (eventsResponse.ok) {
           const eventsData = await eventsResponse.json()
           setSecurityEvents(eventsData.events)
@@ -127,7 +141,7 @@ export default function SecurityPage() {
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (newPassword !== confirmPassword) {
       toast.error("New passwords do not match")
       return
@@ -180,7 +194,7 @@ export default function SecurityPage() {
       })
 
       if (response.ok) {
-        setSessions(sessions.filter(s => s.id !== sessionId))
+        setSessions(sessions.filter((s) => s.id !== sessionId))
         toast.success("Session revoked successfully")
       } else {
         throw new Error("Failed to revoke session")
@@ -244,11 +258,14 @@ export default function SecurityPage() {
   }
 
   const getSeverityBadge = (severity: string) => {
-    const variant = 
-      severity === "CRITICAL" ? "destructive" :
-      severity === "HIGH" ? "destructive" :
-      severity === "MEDIUM" ? "secondary" :
-      "outline"
+    const variant =
+      severity === "CRITICAL"
+        ? "destructive"
+        : severity === "HIGH"
+          ? "destructive"
+          : severity === "MEDIUM"
+            ? "secondary"
+            : "outline"
 
     return (
       <Badge variant={variant} className="text-xs">
@@ -274,9 +291,7 @@ export default function SecurityPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Security Center</h1>
-          <p className="text-muted-foreground">
-            Monitor your account security and manage access
-          </p>
+          <p className="text-muted-foreground">Monitor your account security and manage access</p>
         </div>
         <Button onClick={downloadSecurityReport} variant="outline">
           <Download className="h-4 w-4 mr-2" />
@@ -346,16 +361,15 @@ export default function SecurityPage() {
                 <Key className="h-5 w-5" />
                 <span>Password Security</span>
               </CardTitle>
-              <CardDescription>
-                Manage your password and authentication settings
-              </CardDescription>
+              <CardDescription>Manage your password and authentication settings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">Password</p>
                   <p className="text-sm text-muted-foreground">
-                    Last changed: {stats.lastLogin ? new Date(stats.lastLogin).toLocaleDateString() : "Never"}
+                    Last changed:{" "}
+                    {stats.lastLogin ? new Date(stats.lastLogin).toLocaleDateString() : "Never"}
                   </p>
                 </div>
                 <Dialog open={showChangePasswordDialog} onOpenChange={setShowChangePasswordDialog}>
@@ -375,9 +389,9 @@ export default function SecurityPage() {
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="current-password">Current Password</Label>
+                          <Label htmlFor={currentPasswordId}>Current Password</Label>
                           <Input
-                            id="current-password"
+                            id={currentPasswordId}
                             type="password"
                             value={currentPassword}
                             onChange={(e) => setCurrentPassword(e.target.value)}
@@ -385,9 +399,9 @@ export default function SecurityPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="new-password">New Password</Label>
+                          <Label htmlFor={newPasswordId}>New Password</Label>
                           <Input
-                            id="new-password"
+                            id={newPasswordId}
                             type="password"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
@@ -396,9 +410,9 @@ export default function SecurityPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="confirm-password">Confirm New Password</Label>
+                          <Label htmlFor={confirmPasswordId}>Confirm New Password</Label>
                           <Input
-                            id="confirm-password"
+                            id={confirmPasswordId}
                             type="password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -408,9 +422,9 @@ export default function SecurityPage() {
                         </div>
                       </div>
                       <DialogFooter>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
+                        <Button
+                          type="button"
+                          variant="outline"
                           onClick={() => setShowChangePasswordDialog(false)}
                         >
                           Cancel
@@ -452,11 +466,7 @@ export default function SecurityPage() {
                   <span>Active Sessions ({sessions.length})</span>
                 </div>
                 {sessions.length > 1 && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleRevokeAllSessions}
-                  >
+                  <Button variant="outline" size="sm" onClick={handleRevokeAllSessions}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Revoke All
                   </Button>
@@ -484,8 +494,8 @@ export default function SecurityPage() {
                           )}
                         </div>
                         {!sessionItem.isCurrent && (
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleRevokeSession(sessionItem.id)}
                           >
@@ -576,12 +586,8 @@ export default function SecurityPage() {
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            {getSeverityBadge(event.severity)}
-                          </TableCell>
-                          <TableCell className="max-w-xs truncate">
-                            {event.message}
-                          </TableCell>
+                          <TableCell>{getSeverityBadge(event.severity)}</TableCell>
+                          <TableCell className="max-w-xs truncate">{event.message}</TableCell>
                           <TableCell className="text-sm text-muted-foreground">
                             {event.ipAddress || "Unknown"}
                           </TableCell>

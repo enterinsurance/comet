@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
 import { getAuditLogs } from "@/lib/audit-logger"
+import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { checkRateLimit, createRateLimitHeaders, createRateLimitResponse } from "@/lib/rate-limit"
 
@@ -72,26 +72,28 @@ export async function GET(request: NextRequest) {
 
     // Generate security metrics
     const securityMetrics = {
-      loginAttempts: auditLogs.filter(log => log.eventType === "USER_LOGIN").length,
-      failedLogins: auditLogs.filter(log => log.eventType === "LOGIN_FAILED").length,
-      documentsAccessed: auditLogs.filter(log => log.eventType === "DOCUMENT_VIEWED").length,
-      signaturesCreated: auditLogs.filter(log => log.eventType === "SIGNATURE_SUBMITTED").length,
-      securityEvents: auditLogs.filter(log => 
+      loginAttempts: auditLogs.filter((log) => log.eventType === "USER_LOGIN").length,
+      failedLogins: auditLogs.filter((log) => log.eventType === "LOGIN_FAILED").length,
+      documentsAccessed: auditLogs.filter((log) => log.eventType === "DOCUMENT_VIEWED").length,
+      signaturesCreated: auditLogs.filter((log) => log.eventType === "SIGNATURE_SUBMITTED").length,
+      securityEvents: auditLogs.filter((log) =>
         ["RATE_LIMIT_EXCEEDED", "INVALID_TOKEN_USED", "SUSPICIOUS_ACTIVITY"].includes(log.eventType)
       ).length,
     }
 
     // Security recommendations
     const recommendations = []
-    
+
     if (securityMetrics.failedLogins > 5) {
-      recommendations.push("Consider enabling two-factor authentication due to multiple failed login attempts")
+      recommendations.push(
+        "Consider enabling two-factor authentication due to multiple failed login attempts"
+      )
     }
-    
+
     if (!user?.emailVerified) {
       recommendations.push("Verify your email address to improve account security")
     }
-    
+
     if (activeSessions.length > 3) {
       recommendations.push("You have multiple active sessions. Consider revoking unused sessions")
     }
@@ -118,7 +120,7 @@ export async function GET(request: NextRequest) {
         metrics: securityMetrics,
         recommendations,
       },
-      auditEvents: auditLogs.map(log => ({
+      auditEvents: auditLogs.map((log) => ({
         eventType: log.eventType,
         severity: log.severity,
         message: log.message,
@@ -127,7 +129,7 @@ export async function GET(request: NextRequest) {
         ipAddress: log.ipAddress,
         metadata: log.metadata,
       })),
-      activeSessions: activeSessions.map(s => ({
+      activeSessions: activeSessions.map((s) => ({
         id: s.id,
         ipAddress: s.ipAddress,
         userAgent: s.userAgent,

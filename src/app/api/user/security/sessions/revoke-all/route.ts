@@ -1,7 +1,12 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+import {
+  AuditEventType,
+  AuditSeverity,
+  extractRequestMetadata,
+  logAuditEvent,
+} from "@/lib/audit-logger"
 import { auth } from "@/lib/auth"
-import { logAuditEvent, AuditEventType, AuditSeverity, extractRequestMetadata } from "@/lib/audit-logger"
 import { prisma } from "@/lib/prisma"
 import { checkRateLimit, createRateLimitHeaders, createRateLimitResponse } from "@/lib/rate-limit"
 

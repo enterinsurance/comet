@@ -2,7 +2,7 @@
 
 import { Calendar, Mail, Save, Trash2, Upload, User } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -41,7 +41,11 @@ export default function AccountPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  
+
+  // Generate unique IDs for form fields
+  const nameFieldId = useId()
+  const emailFieldId = useId()
+
   // Form states
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -71,7 +75,7 @@ export default function AccountPage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!name.trim()) {
       toast.error("Name is required")
       return
@@ -153,9 +157,7 @@ export default function AccountPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Account Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account information and preferences
-        </p>
+        <p className="text-muted-foreground">Manage your account information and preferences</p>
       </div>
 
       {/* Profile Overview */}
@@ -185,7 +187,9 @@ export default function AccountPage() {
                   <div className="text-sm text-muted-foreground">Documents</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{profile._count.signatures}</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    {profile._count.signatures}
+                  </div>
                   <div className="text-sm text-muted-foreground">Signatures</div>
                 </div>
                 <div className="text-center">
@@ -204,17 +208,15 @@ export default function AccountPage() {
       <Card>
         <CardHeader>
           <CardTitle>Edit Profile</CardTitle>
-          <CardDescription>
-            Update your personal information and account details
-          </CardDescription>
+          <CardDescription>Update your personal information and account details</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleUpdateProfile} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor={nameFieldId}>Full Name</Label>
                 <Input
-                  id="name"
+                  id={nameFieldId}
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -222,11 +224,11 @@ export default function AccountPage() {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
+                <Label htmlFor={emailFieldId}>Email Address</Label>
                 <Input
-                  id="email"
+                  id={emailFieldId}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -234,9 +236,7 @@ export default function AccountPage() {
                   required
                 />
                 {!profile.emailVerified && (
-                  <p className="text-sm text-yellow-600">
-                    Email address not verified
-                  </p>
+                  <p className="text-sm text-yellow-600">Email address not verified</p>
                 )}
               </div>
             </div>
@@ -271,8 +271,8 @@ export default function AccountPage() {
               <div>
                 <p className="font-medium">Email Verification</p>
                 <p className="text-sm text-muted-foreground">
-                  {profile.emailVerified 
-                    ? "Your email address has been verified" 
+                  {profile.emailVerified
+                    ? "Your email address has been verified"
                     : "Please verify your email address"}
                 </p>
               </div>
@@ -286,9 +286,9 @@ export default function AccountPage() {
                 )}
               </div>
             </div>
-            
+
             <Separator />
-            
+
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Account Created</p>
@@ -319,10 +319,11 @@ export default function AccountPage() {
             <div className="p-4 border border-red-200 rounded-lg bg-red-50">
               <h4 className="font-medium text-red-800 mb-2">Delete Account</h4>
               <p className="text-sm text-red-700 mb-4">
-                Permanently delete your account and all associated data. This action cannot be undone.
-                All your documents, signatures, and account information will be permanently removed.
+                Permanently delete your account and all associated data. This action cannot be
+                undone. All your documents, signatures, and account information will be permanently
+                removed.
               </p>
-              
+
               <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogTrigger asChild>
                   <Button variant="destructive" size="sm">

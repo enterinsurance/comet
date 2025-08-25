@@ -24,10 +24,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ProgressIndicator, DocumentSigningSteps, type ProgressStep } from "@/components/ui/progress-indicator"
-import { LoadingState, DocumentListSkeleton } from "@/components/ui/loading-state"
 import { DocumentErrorBoundary } from "@/components/ui/error-boundary"
+import { DocumentListSkeleton, LoadingState } from "@/components/ui/loading-state"
+import {
+  DocumentSigningSteps,
+  ProgressIndicator,
+  type ProgressStep,
+} from "@/components/ui/progress-indicator"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface Document {
   id: string
@@ -158,10 +162,10 @@ export default function DocumentViewPage() {
     if (!document) return DocumentSigningSteps
 
     const steps = [...DocumentSigningSteps]
-    
+
     // Step 1: Upload Document - always completed for existing documents
     steps[0].status = "completed"
-    
+
     // Step 2: Add Signature Fields - completed if document has fields or is SENT/PARTIALLY_SIGNED/COMPLETED
     if (document.status !== "DRAFT") {
       steps[1].status = "completed"
@@ -169,7 +173,7 @@ export default function DocumentViewPage() {
       steps[1].status = "current"
       return steps
     }
-    
+
     // Step 3: Add Recipients - completed if document is SENT or further
     if (["SENT", "PARTIALLY_SIGNED", "COMPLETED"].includes(document.status)) {
       steps[2].status = "completed"
@@ -177,22 +181,22 @@ export default function DocumentViewPage() {
       steps[2].status = "current"
       return steps
     }
-    
+
     // Step 4: Send Invitations - completed if document is SENT or further
     if (["SENT", "PARTIALLY_SIGNED", "COMPLETED"].includes(document.status)) {
       steps[3].status = "completed"
     } else {
-      steps[3].status = "current" 
+      steps[3].status = "current"
       return steps
     }
-    
+
     // Step 5: Collect Signatures - completed if COMPLETED, current if PARTIALLY_SIGNED or SENT
     if (document.status === "COMPLETED") {
       steps[4].status = "completed"
     } else if (["SENT", "PARTIALLY_SIGNED"].includes(document.status)) {
       steps[4].status = "current"
     }
-    
+
     return steps
   }
 
@@ -254,229 +258,227 @@ export default function DocumentViewPage() {
   return (
     <DocumentErrorBoundary>
       <div className="space-y-6 h-[calc(100vh-8rem)]">
-      {/* Breadcrumb Navigation */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/dashboard/documents">Documents</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{document.title}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+        {/* Breadcrumb Navigation */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/dashboard/documents">Documents</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{document.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center space-x-2 mb-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/dashboard/documents">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Documents
-              </Link>
-            </Button>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight">{document.title}</h1>
-          <p className="text-muted-foreground">View and manage your document</p>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={downloadDocument}>
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <MoreHorizontal className="h-4 w-4 mr-2" />
-                Actions
+        {/* Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center space-x-2 mb-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard/documents">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Documents
+                </Link>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Share2 className="h-4 w-4 mr-2" />
-                Share Document
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  const editorContainer = window.document.getElementById("document-editor")
-                  editorContainer?.scrollIntoView({ behavior: "smooth" })
-                }}
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Add Signature Fields
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-red-600" onClick={handleDeleteDocument}>
-                <FileText className="h-4 w-4 mr-2" />
-                Delete Document
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight">{document.title}</h1>
+            <p className="text-muted-foreground">View and manage your document</p>
+          </div>
 
-      {/* Progress Indicator */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Document Progress</CardTitle>
-          <CardDescription>
-            Track the status of your document signing process
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ProgressIndicator 
-            steps={getProgressSteps()} 
-            orientation="horizontal"
-            showDescriptions={true}
-            className="py-4"
-          />
-        </CardContent>
-      </Card>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" onClick={downloadDocument}>
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
 
-      {/* Document Layout */}
-      <div className="grid gap-6 lg:grid-cols-4 h-full">
-        {/* Document Info Sidebar */}
-        <div className="lg:col-span-1 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Document Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="text-sm font-medium mb-1">Status</div>
-                <Badge variant="outline" className={getStatusColor(document.status)}>
-                  {document.status.replace("_", " ").toLowerCase()}
-                </Badge>
-              </div>
-
-              <div>
-                <div className="text-sm font-medium mb-1">File Size</div>
-                <div className="text-sm text-muted-foreground">
-                  {formatFileSize(document.fileSize)}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-sm font-medium mb-1">Created</div>
-                <div className="text-sm text-muted-foreground flex items-center">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  {new Date(document.createdAt).toLocaleDateString()}
-                </div>
-              </div>
-
-              <div>
-                <div className="text-sm font-medium mb-1">Last Updated</div>
-                <div className="text-sm text-muted-foreground">
-                  {new Date(document.updatedAt).toLocaleDateString()}
-                </div>
-              </div>
-
-              {document._count.signatures > 0 && (
-                <div>
-                  <div className="text-sm font-medium mb-1">Signatures</div>
-                  <div className="text-sm text-green-600">
-                    {document._count.signatures} signature
-                    {document._count.signatures !== 1 ? "s" : ""}
-                  </div>
-                </div>
-              )}
-
-              {document._count.signingRequests > 0 && (
-                <div>
-                  <div className="text-sm font-medium mb-1">Signing Requests</div>
-                  <div className="text-sm text-blue-600">
-                    {document._count.signingRequests} request
-                    {document._count.signingRequests !== 1 ? "s" : ""}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Next Steps</CardTitle>
-              <CardDescription>What you can do with this document</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {document.status === "DRAFT" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <MoreHorizontal className="h-4 w-4 mr-2" />
+                  Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Document
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => {
                     const editorContainer = window.document.getElementById("document-editor")
                     editorContainer?.scrollIntoView({ behavior: "smooth" })
                   }}
                 >
                   <FileText className="h-4 w-4 mr-2" />
-                  Prepare Document
-                </Button>
-              )}
-
-              {document.status === "SENT" && (
-                <div className="text-sm text-green-600 p-3 bg-green-50 rounded-lg border border-green-200">
-                  <div className="font-medium">Document Ready</div>
-                  <div className="text-xs text-green-700 mt-1">
-                    This document is prepared and ready for signing
-                  </div>
-                </div>
-              )}
-
-              {document.status === "SENT" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => {
-                    const editorContainer = window.document.getElementById("document-editor")
-                    editorContainer?.scrollIntoView({ behavior: "smooth" })
-                  }}
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Send for Signing
-                </Button>
-              )}
-
-              {document.status === "DRAFT" && (
-                <Button variant="outline" size="sm" className="w-full justify-start" disabled>
-                  <User className="h-4 w-4 mr-2" />
-                  Send for Signing
-                  <Badge variant="secondary" className="ml-auto">
-                    Prepare First
-                  </Badge>
-                </Button>
-              )}
-
-              <Button variant="outline" size="sm" className="w-full justify-start">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share Document
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* PDF Viewer */}
-        <div className="lg:col-span-3">
-          <div id="document-editor">
-            <DocumentPreparation
-              documentId={documentId}
-              documentTitle={document.title}
-              fileUrl={document.filePath}
-              fileName={document.fileName}
-              currentStatus={document.status}
-              onStatusChange={handleStatusChange}
-            />
+                  Add Signature Fields
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600" onClick={handleDeleteDocument}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Delete Document
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-      </div>
+
+        {/* Progress Indicator */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Document Progress</CardTitle>
+            <CardDescription>Track the status of your document signing process</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProgressIndicator
+              steps={getProgressSteps()}
+              orientation="horizontal"
+              showDescriptions={true}
+              className="py-4"
+            />
+          </CardContent>
+        </Card>
+
+        {/* Document Layout */}
+        <div className="grid gap-6 lg:grid-cols-4 h-full">
+          {/* Document Info Sidebar */}
+          <div className="lg:col-span-1 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Document Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <div className="text-sm font-medium mb-1">Status</div>
+                  <Badge variant="outline" className={getStatusColor(document.status)}>
+                    {document.status.replace("_", " ").toLowerCase()}
+                  </Badge>
+                </div>
+
+                <div>
+                  <div className="text-sm font-medium mb-1">File Size</div>
+                  <div className="text-sm text-muted-foreground">
+                    {formatFileSize(document.fileSize)}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm font-medium mb-1">Created</div>
+                  <div className="text-sm text-muted-foreground flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {new Date(document.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm font-medium mb-1">Last Updated</div>
+                  <div className="text-sm text-muted-foreground">
+                    {new Date(document.updatedAt).toLocaleDateString()}
+                  </div>
+                </div>
+
+                {document._count.signatures > 0 && (
+                  <div>
+                    <div className="text-sm font-medium mb-1">Signatures</div>
+                    <div className="text-sm text-green-600">
+                      {document._count.signatures} signature
+                      {document._count.signatures !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+                )}
+
+                {document._count.signingRequests > 0 && (
+                  <div>
+                    <div className="text-sm font-medium mb-1">Signing Requests</div>
+                    <div className="text-sm text-blue-600">
+                      {document._count.signingRequests} request
+                      {document._count.signingRequests !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Next Steps</CardTitle>
+                <CardDescription>What you can do with this document</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {document.status === "DRAFT" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      const editorContainer = window.document.getElementById("document-editor")
+                      editorContainer?.scrollIntoView({ behavior: "smooth" })
+                    }}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Prepare Document
+                  </Button>
+                )}
+
+                {document.status === "SENT" && (
+                  <div className="text-sm text-green-600 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div className="font-medium">Document Ready</div>
+                    <div className="text-xs text-green-700 mt-1">
+                      This document is prepared and ready for signing
+                    </div>
+                  </div>
+                )}
+
+                {document.status === "SENT" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      const editorContainer = window.document.getElementById("document-editor")
+                      editorContainer?.scrollIntoView({ behavior: "smooth" })
+                    }}
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Send for Signing
+                  </Button>
+                )}
+
+                {document.status === "DRAFT" && (
+                  <Button variant="outline" size="sm" className="w-full justify-start" disabled>
+                    <User className="h-4 w-4 mr-2" />
+                    Send for Signing
+                    <Badge variant="secondary" className="ml-auto">
+                      Prepare First
+                    </Badge>
+                  </Button>
+                )}
+
+                <Button variant="outline" size="sm" className="w-full justify-start">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Document
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* PDF Viewer */}
+          <div className="lg:col-span-3">
+            <div id="document-editor">
+              <DocumentPreparation
+                documentId={documentId}
+                documentTitle={document.title}
+                fileUrl={document.filePath}
+                fileName={document.fileName}
+                currentStatus={document.status}
+                onStatusChange={handleStatusChange}
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </DocumentErrorBoundary>
   )

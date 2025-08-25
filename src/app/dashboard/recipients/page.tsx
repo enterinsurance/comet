@@ -12,7 +12,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { useSession } from "@/lib/auth-client"
 
 interface Document {
@@ -63,7 +70,7 @@ export default function RecipientsPage() {
         // Fetch documents with signing requests
         const documentsResponse = await fetch("/api/documents")
         const documentsData = await documentsResponse.json()
-        
+
         if (documentsData.success) {
           const docsWithRequests = documentsData.documents.filter(
             (doc: Document) => doc._count.signingRequests > 0
@@ -80,12 +87,12 @@ export default function RecipientsPage() {
           for (const doc of docsWithRequests) {
             const requestsResponse = await fetch(`/api/documents/${doc.id}/signing-requests`)
             const requestsData = await requestsResponse.json()
-            
+
             if (requestsData.signingRequests) {
               requestsData.signingRequests.forEach((req: any) => {
                 uniqueEmails.add(req.email.toLowerCase())
                 totalRequests++
-                
+
                 if (req.status === "PENDING" || req.status === "VIEWED") {
                   pendingCount++
                 } else if (req.status === "COMPLETED") {
@@ -106,11 +113,13 @@ export default function RecipientsPage() {
           const recentRequestsPromises = docsWithRequests.slice(0, 3).map(async (doc: Document) => {
             const response = await fetch(`/api/documents/${doc.id}/signing-requests`)
             const data = await response.json()
-            
-            return data.signingRequests?.map((req: any) => ({
-              ...req,
-              document: { title: doc.title },
-            })) || []
+
+            return (
+              data.signingRequests?.map((req: any) => ({
+                ...req,
+                document: { title: doc.title },
+              })) || []
+            )
           })
 
           const allRecentRequests = (await Promise.all(recentRequestsPromises))
@@ -179,7 +188,7 @@ export default function RecipientsPage() {
             Manage signing recipients and track invitation progress
           </p>
         </div>
-        <Button onClick={() => window.location.href = '/dashboard/recipients/requests'}>
+        <Button onClick={() => (window.location.href = "/dashboard/recipients/requests")}>
           <Mail className="h-4 w-4 mr-2" />
           View All Requests
         </Button>
@@ -194,9 +203,7 @@ export default function RecipientsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalRecipients}</div>
-            <p className="text-xs text-muted-foreground">
-              Unique email addresses
-            </p>
+            <p className="text-xs text-muted-foreground">Unique email addresses</p>
           </CardContent>
         </Card>
 
@@ -207,9 +214,7 @@ export default function RecipientsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.pendingRequests}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting signatures
-            </p>
+            <p className="text-xs text-muted-foreground">Awaiting signatures</p>
           </CardContent>
         </Card>
 
@@ -220,9 +225,7 @@ export default function RecipientsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.completedRequests}</div>
-            <p className="text-xs text-muted-foreground">
-              Successfully signed
-            </p>
+            <p className="text-xs text-muted-foreground">Successfully signed</p>
           </CardContent>
         </Card>
 
@@ -233,9 +236,7 @@ export default function RecipientsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalDocuments}</div>
-            <p className="text-xs text-muted-foreground">
-              With signing requests
-            </p>
+            <p className="text-xs text-muted-foreground">With signing requests</p>
           </CardContent>
         </Card>
       </div>
@@ -245,9 +246,7 @@ export default function RecipientsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Recent Signing Requests</CardTitle>
-            <CardDescription>
-              Latest invitation activity across all documents
-            </CardDescription>
+            <CardDescription>Latest invitation activity across all documents</CardDescription>
           </CardHeader>
           <CardContent>
             {recentRequests.length > 0 ? (
@@ -256,22 +255,18 @@ export default function RecipientsPage() {
                   <div key={request.id} className="flex items-center space-x-4">
                     {getStatusIcon(request.status)}
                     <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium">
-                        {request.name || request.email}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {request.document.title}
-                      </p>
+                      <p className="text-sm font-medium">{request.name || request.email}</p>
+                      <p className="text-xs text-muted-foreground">{request.document.title}</p>
                     </div>
                     <Badge variant={getStatusBadgeVariant(request.status)} className="text-xs">
                       {request.status.toLowerCase()}
                     </Badge>
                   </div>
                 ))}
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full mt-4"
-                  onClick={() => window.location.href = '/dashboard/recipients/requests'}
+                  onClick={() => (window.location.href = "/dashboard/recipients/requests")}
                 >
                   View All Requests
                 </Button>
@@ -289,9 +284,7 @@ export default function RecipientsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Documents with Recipients</CardTitle>
-            <CardDescription>
-              Documents that have signing invitations
-            </CardDescription>
+            <CardDescription>Documents that have signing invitations</CardDescription>
           </CardHeader>
           <CardContent>
             {documentsWithRequests.length > 0 ? (
@@ -299,9 +292,7 @@ export default function RecipientsPage() {
                 {documentsWithRequests.slice(0, 5).map((document) => (
                   <div key={document.id} className="flex items-center justify-between">
                     <div className="flex-1">
-                      <p className="text-sm font-medium truncate">
-                        {document.title}
-                      </p>
+                      <p className="text-sm font-medium truncate">{document.title}</p>
                       <p className="text-xs text-muted-foreground">
                         {document._count.signingRequests} recipient
                         {document._count.signingRequests !== 1 ? "s" : ""}
@@ -315,30 +306,22 @@ export default function RecipientsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/documents/${document.id}`}>
-                            View Document
-                          </Link>
+                          <Link href={`/dashboard/documents/${document.id}`}>View Document</Link>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                 ))}
                 <Button asChild variant="outline" className="w-full mt-4">
-                  <Link href="/dashboard/documents">
-                    View All Documents
-                  </Link>
+                  <Link href="/dashboard/documents">View All Documents</Link>
                 </Button>
               </div>
             ) : (
               <div className="text-center py-6">
                 <FileText className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  No documents with recipients yet
-                </p>
+                <p className="text-sm text-muted-foreground">No documents with recipients yet</p>
                 <Button asChild variant="outline" className="mt-2">
-                  <Link href="/dashboard/documents">
-                    Upload Document
-                  </Link>
+                  <Link href="/dashboard/documents">Upload Document</Link>
                 </Button>
               </div>
             )}

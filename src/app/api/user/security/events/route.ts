@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+import { AuditEventType, AuditSeverity, getAuditLogs, getSecurityEvents } from "@/lib/audit-logger"
 import { auth } from "@/lib/auth"
-import { getSecurityEvents, getAuditLogs, AuditEventType, AuditSeverity } from "@/lib/audit-logger"
 import { checkRateLimit, createRateLimitHeaders, createRateLimitResponse } from "@/lib/rate-limit"
 
 export async function GET(request: NextRequest) {
@@ -22,13 +22,13 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const timeRange = searchParams.get("range") as "last24h" | "last7d" | "last30d" || "last7d"
+    const timeRange = (searchParams.get("range") as "last24h" | "last7d" | "last30d") || "last7d"
     const filter = searchParams.get("filter") || "all"
 
     // Calculate date range
     const now = new Date()
     const startDate = new Date(now)
-    
+
     switch (timeRange) {
       case "last24h":
         startDate.setHours(startDate.getHours() - 24)
@@ -78,23 +78,24 @@ export async function GET(request: NextRequest) {
     })
 
     // If we have multiple event types to filter, do it here
-    const filteredEvents = eventTypeFilter && eventTypeFilter.length > 1
-      ? events.filter(event => eventTypeFilter.includes(event.eventType as AuditEventType))
-      : events
+    const filteredEvents =
+      eventTypeFilter && eventTypeFilter.length > 1
+        ? events.filter((event) => eventTypeFilter.includes(event.eventType as AuditEventType))
+        : events
 
     // Calculate stats
     const stats = {
       totalEvents: filteredEvents.length,
-      criticalEvents: filteredEvents.filter(e => e.severity === AuditSeverity.CRITICAL).length,
-      failedLogins: filteredEvents.filter(e => 
-        e.eventType === AuditEventType.LOGIN_FAILED && 
-        e.timestamp >= startDate
+      criticalEvents: filteredEvents.filter((e) => e.severity === AuditSeverity.CRITICAL).length,
+      failedLogins: filteredEvents.filter(
+        (e) => e.eventType === AuditEventType.LOGIN_FAILED && e.timestamp >= startDate
       ).length,
       activeSessions: 1, // This would be calculated from session data
-      lastLogin: filteredEvents
-        .filter(e => e.eventType === AuditEventType.USER_LOGIN)
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
-        ?.timestamp || null,
+      lastLogin:
+        filteredEvents
+          .filter((e) => e.eventType === AuditEventType.USER_LOGIN)
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0]
+          ?.timestamp || null,
     }
 
     const response = NextResponse.json({

@@ -1,7 +1,7 @@
 "use client"
 
+import { AlertTriangle, Home, RefreshCw } from "lucide-react"
 import React, { Component, ReactNode } from "react"
-import { AlertTriangle, RefreshCw, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface ErrorBoundaryProps {

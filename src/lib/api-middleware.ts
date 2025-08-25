@@ -16,15 +16,16 @@ export function withApiMiddleware(handler: ApiHandler) {
 
       // Execute the handler
       const handlerResponse = await handler(request, ...args)
-      
+
       // Convert Response to NextResponse if needed
-      const response = handlerResponse instanceof NextResponse 
-        ? handlerResponse 
-        : new NextResponse(handlerResponse.body, {
-            status: handlerResponse.status,
-            statusText: handlerResponse.statusText,
-            headers: handlerResponse.headers
-          })
+      const response =
+        handlerResponse instanceof NextResponse
+          ? handlerResponse
+          : new NextResponse(handlerResponse.body, {
+              status: handlerResponse.status,
+              statusText: handlerResponse.statusText,
+              headers: handlerResponse.headers,
+            })
 
       // Add CORS headers to the response
       const responseWithCors = addCorsHeaders(response, request)
