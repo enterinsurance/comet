@@ -196,6 +196,34 @@ model Signature {
   @@map("signatures")
 }
 
+model AuditLog {
+  id             String        @id @default(cuid())
+  eventType      String        // AuditEventType as string
+  severity       String        // AuditSeverity as string
+  message        String
+  success        Boolean
+  userId         String?       // Optional - may not have user context
+  sessionId      String?
+  documentId     String?
+  invitationId   String?
+  ipAddress      String?
+  userAgent      String?
+  requestId      String?
+  email          String?
+  metadata       Json?         // Additional structured data
+  additionalData Json?         // Extra context data
+  timestamp      DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+
+  @@index([userId])
+  @@index([documentId])
+  @@index([eventType])
+  @@index([severity])
+  @@index([timestamp])
+  @@index([ipAddress])
+  @@map("audit_logs")
+}
+
 // Enums
 enum DocumentStatus {
   DRAFT

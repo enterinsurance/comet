@@ -4,6 +4,7 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { sendBulkSigningInvitations } from "@/lib/email"
 import { prisma } from "@/lib/prisma"
+import { checkRateLimit, createRateLimitHeaders, createRateLimitResponse } from "@/lib/rate-limit"
 import { calculateTokenExpiration, generateSigningToken } from "@/lib/tokens"
 
 const signerSchema = z.object({
@@ -23,6 +24,12 @@ export async function POST(
   { params }: { params: Promise<{ documentId: string }> }
 ) {
   try {
+    // Check rate limit
+    const rateLimit = await checkRateLimit("email")
+    if (!rateLimit.success) {
+      return createRateLimitResponse()
+    }
+
     // Check authentication
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -142,7 +149,15 @@ export async function POST(
       emailFailures: failedEmails,
     }
 
-    return NextResponse.json(response)
+    const responseObj = NextResponse.json(response)
+
+    // Add rate limit headers
+    const rateLimitHeaders = createRateLimitHeaders(rateLimit)
+    Object.entries(rateLimitHeaders).forEach(([key, value]) => {
+      responseObj.headers.set(key, value)
+    })
+
+    return responseObj
   } catch (error) {
     console.error("Send invitations error:", error)
 

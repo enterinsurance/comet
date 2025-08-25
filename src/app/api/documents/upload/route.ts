@@ -1,13 +1,24 @@
 import { put } from "@vercel/blob"
 import { type NextRequest, NextResponse } from "next/server"
+import { withApiMiddleware } from "@/lib/api-middleware"
+import { logDocumentUpload, logRateLimitExceeded } from "@/lib/audit-logger"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { checkRateLimit, createRateLimitHeaders, createRateLimitResponse } from "@/lib/rate-limit"
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_TYPES = ["application/pdf"]
 
-export async function POST(request: NextRequest) {
+async function uploadHandler(request: NextRequest) {
   try {
+    // Check rate limit
+    const rateLimit = await checkRateLimit("upload")
+    if (!rateLimit.success) {
+      // Log rate limit exceeded
+      await logRateLimitExceeded("upload", rateLimit.limit, request)
+      return createRateLimitResponse()
+    }
+
     // Check authentication
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -57,7 +68,10 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({
+    // Log successful upload
+    await logDocumentUpload(session.user.id, document.id, file.name, file.size, request)
+
+    const response = NextResponse.json({
       id: document.id,
       title: document.title,
       fileName: document.fileName,
@@ -66,8 +80,18 @@ export async function POST(request: NextRequest) {
       createdAt: document.createdAt,
       url: document.filePath,
     })
+
+    // Add rate limit headers
+    const rateLimitHeaders = createRateLimitHeaders(rateLimit)
+    Object.entries(rateLimitHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value)
+    })
+
+    return response
   } catch (error) {
     console.error("Upload error:", error)
     return NextResponse.json({ error: "Failed to upload file" }, { status: 500 })
   }
 }
+
+export const POST = withApiMiddleware(uploadHandler)

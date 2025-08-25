@@ -1,8 +1,10 @@
 import { put } from "@vercel/blob"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
+import { logRateLimitExceeded, logSignatureSubmission } from "@/lib/audit-logger"
 import { sendCompletionNotifications } from "@/lib/completion-notifications"
 import { prisma } from "@/lib/prisma"
+import { checkRateLimit, createRateLimitHeaders, createRateLimitResponse } from "@/lib/rate-limit"
 import {
   createSignatureAudit,
   generateSignatureFilename,
@@ -12,6 +14,13 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check rate limit
+    const rateLimit = await checkRateLimit("signing")
+    if (!rateLimit.success) {
+      await logRateLimitExceeded("signing", rateLimit.limit, request)
+      return createRateLimitResponse()
+    }
+
     const { token, signatureData, signerName, signerTitle, signerNotes } = await request.json()
 
     if (!token || !signatureData || !signerName) {
@@ -93,6 +102,14 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    // Log successful signature submission
+    await logSignatureSubmission(
+      invitation.id,
+      invitation.documentId,
+      invitation.recipientEmail,
+      request
+    )
+
     // Check if all invitations for this document are completed
     const allInvitations = await prisma.documentInvitation.findMany({
       where: { documentId: invitation.documentId },
@@ -132,12 +149,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "Document signed successfully",
       signatureUrl: signatureBlobResult.url,
       allSignaturesComplete: allCompleted,
     })
+
+    // Add rate limit headers
+    const rateLimitHeaders = createRateLimitHeaders(rateLimit)
+    Object.entries(rateLimitHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value)
+    })
+
+    return response
   } catch (error) {
     console.error("Signature submission error:", error)
     return NextResponse.json({ error: "Failed to submit signature" }, { status: 500 })
